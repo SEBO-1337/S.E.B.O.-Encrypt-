@@ -39,7 +39,7 @@ class MainActivity : ComponentActivity() {
         qrScanLauncher = registerForActivityResult(ScanContract()) { result: ScanIntentResult ->
             val content = result.contents
             if (content != null) {
-                viewModelRef?.onContactQRScanned(content)
+                viewModelRef?.onQRScanned(content)
             }
         }
 

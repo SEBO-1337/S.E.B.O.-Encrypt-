@@ -10,11 +10,16 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import com.sebo.seboencrypt.viewmodel.E2EEViewModel
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun EncryptTab(vm: E2EEViewModel) {
-    val context = LocalContext.current
-    val input   by vm.encryptInput.collectAsState()
-    val output  by vm.encryptOutput.collectAsState()
+    val context       = LocalContext.current
+    val input         by vm.encryptInput.collectAsState()
+    val output        by vm.encryptOutput.collectAsState()
+    val contacts      by vm.contacts.collectAsState()
+    val activeContact by vm.activeContact.collectAsState()
+
+    var dropdownExpanded by remember { mutableStateOf(false) }
 
     Column(
         modifier = Modifier
@@ -23,6 +28,42 @@ fun EncryptTab(vm: E2EEViewModel) {
             .verticalScroll(rememberScrollState()),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
+        // ── Kontakt-Auswahl ──
+        if (contacts.isNotEmpty()) {
+            Text("Empfänger", style = MaterialTheme.typography.titleMedium)
+            ExposedDropdownMenuBox(
+                expanded = dropdownExpanded,
+                onExpandedChange = { dropdownExpanded = it }
+            ) {
+                OutlinedTextField(
+                    value = activeContact?.name ?: "Kein Kontakt",
+                    onValueChange = {},
+                    readOnly = true,
+                    label = { Text("Kontakt auswählen") },
+                    trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(dropdownExpanded) },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .menuAnchor()
+                )
+                ExposedDropdownMenu(
+                    expanded = dropdownExpanded,
+                    onDismissRequest = { dropdownExpanded = false }
+                ) {
+                    contacts.forEach { contact ->
+                        DropdownMenuItem(
+                            text = { Text(contact.name) },
+                            onClick = {
+                                vm.selectContact(contact)
+                                dropdownExpanded = false
+                            }
+                        )
+                    }
+                }
+            }
+            HorizontalDivider()
+        }
+
+        // ── Nachricht ──
         Text("Nachricht eingeben", style = MaterialTheme.typography.titleMedium)
 
         OutlinedTextField(
@@ -38,14 +79,14 @@ fun EncryptTab(vm: E2EEViewModel) {
 
         Button(
             onClick = { vm.encrypt() },
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier.fillMaxWidth(),
+            enabled = activeContact != null
         ) {
             Text("🔒 Verschlüsseln")
         }
 
         if (output.isNotEmpty()) {
-            HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp))
-
+            HorizontalDivider()
             Text("Verschlüsselte Nachricht:", style = MaterialTheme.typography.titleMedium)
 
             OutlinedTextField(
@@ -67,18 +108,12 @@ fun EncryptTab(vm: E2EEViewModel) {
                 OutlinedButton(
                     onClick = { vm.copyEncryptOutput(context) },
                     modifier = Modifier.weight(1f)
-                ) {
-                    Text("📋 Kopieren")
-                }
+                ) { Text("📋 Kopieren") }
                 Button(
                     onClick = { vm.shareViaWhatsApp(context) },
                     modifier = Modifier.weight(1f)
-                ) {
-                    Text("📤 Via WhatsApp")
-                }
+                ) { Text("📤 Via WhatsApp") }
             }
         }
     }
 }
-
-

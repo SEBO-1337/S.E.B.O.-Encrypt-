@@ -10,11 +10,16 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import com.sebo.seboencrypt.viewmodel.E2EEViewModel
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DecryptTab(vm: E2EEViewModel) {
-    val context = LocalContext.current
-    val input   by vm.decryptInput.collectAsState()
-    val output  by vm.decryptOutput.collectAsState()
+    val context       = LocalContext.current
+    val input         by vm.decryptInput.collectAsState()
+    val output        by vm.decryptOutput.collectAsState()
+    val contacts      by vm.contacts.collectAsState()
+    val activeContact by vm.activeContact.collectAsState()
+
+    var dropdownExpanded by remember { mutableStateOf(false) }
 
     Column(
         modifier = Modifier
@@ -23,6 +28,42 @@ fun DecryptTab(vm: E2EEViewModel) {
             .verticalScroll(rememberScrollState()),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
+        // ── Kontakt-Auswahl ──
+        if (contacts.isNotEmpty()) {
+            Text("Absender", style = MaterialTheme.typography.titleMedium)
+            ExposedDropdownMenuBox(
+                expanded = dropdownExpanded,
+                onExpandedChange = { dropdownExpanded = it }
+            ) {
+                OutlinedTextField(
+                    value = activeContact?.name ?: "Kein Kontakt",
+                    onValueChange = {},
+                    readOnly = true,
+                    label = { Text("Kontakt auswählen") },
+                    trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(dropdownExpanded) },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .menuAnchor()
+                )
+                ExposedDropdownMenu(
+                    expanded = dropdownExpanded,
+                    onDismissRequest = { dropdownExpanded = false }
+                ) {
+                    contacts.forEach { contact ->
+                        DropdownMenuItem(
+                            text = { Text(contact.name) },
+                            onClick = {
+                                vm.selectContact(contact)
+                                dropdownExpanded = false
+                            }
+                        )
+                    }
+                }
+            }
+            HorizontalDivider()
+        }
+
+        // ── Chiffretext eingeben ──
         Text("Verschlüsselte Nachricht einfügen", style = MaterialTheme.typography.titleMedium)
 
         OutlinedTextField(
@@ -43,20 +84,16 @@ fun DecryptTab(vm: E2EEViewModel) {
             OutlinedButton(
                 onClick = { vm.pasteToDecryptInput(context) },
                 modifier = Modifier.weight(1f)
-            ) {
-                Text("📋 Einfügen")
-            }
+            ) { Text("📋 Einfügen") }
             Button(
                 onClick = { vm.decrypt() },
-                modifier = Modifier.weight(1f)
-            ) {
-                Text("🔓 Entschlüsseln")
-            }
+                modifier = Modifier.weight(1f),
+                enabled = activeContact != null
+            ) { Text("🔓 Entschlüsseln") }
         }
 
         if (output.isNotEmpty()) {
-            HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp))
-
+            HorizontalDivider()
             Text("Entschlüsselte Nachricht:", style = MaterialTheme.typography.titleMedium)
 
             Surface(
@@ -76,11 +113,7 @@ fun DecryptTab(vm: E2EEViewModel) {
             OutlinedButton(
                 onClick = { vm.copyDecryptOutput(context) },
                 modifier = Modifier.fillMaxWidth()
-            ) {
-                Text("📋 Klartext kopieren")
-            }
+            ) { Text("📋 Klartext kopieren") }
         }
     }
 }
-
-
