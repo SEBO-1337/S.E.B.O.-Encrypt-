@@ -81,7 +81,7 @@ fun MainScreen(vm: E2EEViewModel, onScanQR: () -> Unit) {
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("SEBOEncrypt") },
+                title = { Text("S.E.B.O. Encrypt") },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = MaterialTheme.colorScheme.primaryContainer,
                     titleContentColor = MaterialTheme.colorScheme.onPrimaryContainer
@@ -93,6 +93,7 @@ fun MainScreen(vm: E2EEViewModel, onScanQR: () -> Unit) {
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
+                .imePadding()
         ) {
             // Status-Banner
             StatusBanner(
