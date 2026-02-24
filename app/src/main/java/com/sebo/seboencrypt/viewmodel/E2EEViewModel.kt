@@ -168,7 +168,7 @@ class E2EEViewModel(app: Application) : AndroidViewModel(app) {
         }
         runCatching {
             encryptOutput.value = CryptoEngine.encrypt(encryptInput.value, key)
-            _status.value = UiStatus("🔒", "Verschluesselt - kopieren & senden")
+            _status.value = UiStatus("🔒", "Verschlüsselt - kopieren & senden")
         }.onFailure {
             _status.value = UiStatus("❌", "Fehler: ${it.message}", isError = true)
         }
@@ -181,9 +181,9 @@ class E2EEViewModel(app: Application) : AndroidViewModel(app) {
         }
         runCatching {
             decryptOutput.value = CryptoEngine.decrypt(decryptInput.value, key)
-            _status.value = UiStatus("🔓", "Entschluesselt")
+            _status.value = UiStatus("🔓", "Entschlüsselt")
         }.onFailure {
-            _status.value = UiStatus("❌", "Entschluesselung fehlgeschlagen - falscher Kontakt?", isError = true)
+            _status.value = UiStatus("❌", "Entschlüsselung fehlgeschlagen - falscher Kontakt?", isError = true)
         }
     }
 
@@ -207,7 +207,7 @@ class E2EEViewModel(app: Application) : AndroidViewModel(app) {
         val text = ClipboardHelper.pasteFromClipboard(context)
         if (text != null) {
             decryptInput.value = text
-            _status.value = UiStatus("📋", "Aus Zwischenablage eingefuegt")
+            _status.value = UiStatus("📋", "Aus Zwischenablage eingefügt")
         } else {
             _status.value = UiStatus("⚠️", "Zwischenablage ist leer", isError = true)
         }
@@ -217,13 +217,13 @@ class E2EEViewModel(app: Application) : AndroidViewModel(app) {
         if (encryptOutput.value.isNotEmpty()) {
             ShareHelper.shareViaWhatsApp(context, encryptOutput.value)
         } else {
-            _status.value = UiStatus("⚠️", "Nichts zum Teilen - zuerst verschluesseln", isError = true)
+            _status.value = UiStatus("⚠️", "Nichts zum Teilen - zuerst verschlüsseln", isError = true)
         }
     }
 
     // ── Share-Intent ─────────────────────────────────────────────────────────
 
-    /** Wird aufgerufen wenn die App einen geteilten Text empfängt (z.B. aus WhatsApp) */
+    /** Wird aufgerufen, wenn die App einen geteilten Text empfängt (z.B. aus WhatsApp) */
     fun onSharedTextReceived(text: String) {
         decryptInput.value = text
         decryptOutput.value = ""

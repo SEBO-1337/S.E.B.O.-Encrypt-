@@ -118,7 +118,7 @@ fun KeyTab(
     if (showManualAddDialog.value) {
         AlertDialog(
             onDismissRequest = { showManualAddDialog.value = false },
-            title = { Text("Kontakt manüll hinzufügen") },
+            title = { Text("Kontakt manuell hinzufügen") },
             text = {
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     Text(
@@ -240,7 +240,7 @@ fun KeyTab(
                 }
             },
             confirmButton = {
-                TextButton(onClick = { detailContact.value = null }) { Text("Schliessen") }
+                TextButton(onClick = { detailContact.value = null }) { Text("Schließen") }
             }
         )
     }
