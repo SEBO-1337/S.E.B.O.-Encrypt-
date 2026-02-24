@@ -84,7 +84,7 @@ class E2EEViewModel(app: Application) : AndroidViewModel(app) {
                 sessionKey      = sessionKey
             )
             ContactRepository.saveContact(ctx, contact, _contacts.value)
-            _contacts.value      = _contacts.value + contact
+            _contacts.value += contact
             _activeContact.value = contact
             pendingPublicKeyBase64 = null
             _hasPendingQR.value  = false
@@ -112,7 +112,7 @@ class E2EEViewModel(app: Application) : AndroidViewModel(app) {
                 sessionKey      = sessionKey
             )
             ContactRepository.saveContact(ctx, contact, _contacts.value)
-            _contacts.value      = _contacts.value + contact
+            _contacts.value += contact
             _activeContact.value = contact
             _status.value = UiStatus("✅", "\"${contact.name}\" hinzugefügt & aktiv")
         }.onFailure {
