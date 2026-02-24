@@ -20,10 +20,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.sebo.seboencrypt.ClipboardHelper
+import com.sebo.seboencrypt.R
 import com.sebo.seboencrypt.ShareHelper
 import com.sebo.seboencrypt.model.Contact
 import com.sebo.seboencrypt.viewmodel.E2EEViewModel

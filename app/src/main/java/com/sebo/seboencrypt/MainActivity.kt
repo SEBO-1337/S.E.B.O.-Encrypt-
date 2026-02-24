@@ -4,7 +4,9 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
+import androidx.compose.ui.Alignment
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.LockOpen
@@ -12,6 +14,8 @@ import androidx.compose.material.icons.filled.QrCode
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.journeyapps.barcodescanner.ScanContract
@@ -74,44 +78,50 @@ fun MainScreen(vm: E2EEViewModel, onScanQR: () -> Unit) {
     )
     var selectedTab by remember { mutableIntStateOf(0) }
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text("S.E.B.O. Encrypt") },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.primaryContainer,
-                    titleContentColor = MaterialTheme.colorScheme.onPrimaryContainer
-                )
-            )
-        }
-    ) { innerPadding ->
-        Column(
+    Scaffold { innerPadding ->
+        Box(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
-                .imePadding()
         ) {
-            StatusBanner(
-                status = status,
-                modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
-            )
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .imePadding()
+            ) {
+                Image(
+                    painter = painterResource(id = R.drawable.banner),
+                    contentDescription = "S.E.B.O. Encrypt",
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(140.dp),
+                    contentScale = ContentScale.FillWidth
+                )
 
-            TabRow(selectedTabIndex = selectedTab) {
-                tabs.forEach { (label, icon, index) ->
-                    Tab(
-                        selected = selectedTab == index,
-                        onClick = { selectedTab = index },
-                        text = { Text(label) },
-                        icon = { Icon(icon, contentDescription = label) }
-                    )
+                TabRow(selectedTabIndex = selectedTab) {
+                    tabs.forEach { (label, icon, index) ->
+                        Tab(
+                            selected = selectedTab == index,
+                            onClick = { selectedTab = index },
+                            text = { Text(label) },
+                            icon = { Icon(icon, contentDescription = label) }
+                        )
+                    }
+                }
+
+                when (selectedTab) {
+                    0 -> EncryptTab(vm)
+                    1 -> DecryptTab(vm)
+                    2 -> KeyTab(vm, onScanQR = onScanQR)
                 }
             }
 
-            when (selectedTab) {
-                0 -> EncryptTab(vm)
-                1 -> DecryptTab(vm)
-                2 -> KeyTab(vm, onScanQR = onScanQR)
-            }
+            StatusBanner(
+                status = status,
+                modifier = Modifier
+                    .align(Alignment.TopCenter)
+                    .padding(horizontal = 16.dp, vertical = 12.dp)
+            )
         }
     }
 }
