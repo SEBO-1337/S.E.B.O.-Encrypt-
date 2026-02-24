@@ -1,4 +1,4 @@
-package com.sebo.seboencrypt.ui
+package com.sebo.seboencrypt.ui.screens
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState

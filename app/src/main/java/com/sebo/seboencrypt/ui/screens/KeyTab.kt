@@ -1,5 +1,6 @@
-package com.sebo.seboencrypt.ui
+package com.sebo.seboencrypt.ui.screens
 
+import android.content.Context
 import android.graphics.Bitmap
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
@@ -279,7 +280,7 @@ fun KeyTab(
 private fun MyKeySection(
     vm: E2EEViewModel,
     qrBitmap: Bitmap?,
-    context: android.content.Context
+    context: Context
 ) {
     Column(
         modifier = Modifier

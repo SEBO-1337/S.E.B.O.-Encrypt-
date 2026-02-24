@@ -1,4 +1,4 @@
-package com.sebo.seboencrypt.ui
+package com.sebo.seboencrypt.ui.components
 
 import androidx.compose.animation.*
 import androidx.compose.foundation.layout.*

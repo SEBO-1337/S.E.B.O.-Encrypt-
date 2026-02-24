@@ -22,10 +22,10 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.journeyapps.barcodescanner.ScanContract
 import com.journeyapps.barcodescanner.ScanIntentResult
 import com.journeyapps.barcodescanner.ScanOptions
-import com.sebo.seboencrypt.ui.DecryptTab
-import com.sebo.seboencrypt.ui.EncryptTab
-import com.sebo.seboencrypt.ui.KeyTab
-import com.sebo.seboencrypt.ui.StatusBanner
+import com.sebo.seboencrypt.ui.screens.DecryptTab
+import com.sebo.seboencrypt.ui.screens.EncryptTab
+import com.sebo.seboencrypt.ui.screens.KeyTab
+import com.sebo.seboencrypt.ui.components.StatusBanner
 import com.sebo.seboencrypt.ui.theme.SEBOEncryptTheme
 import com.sebo.seboencrypt.viewmodel.E2EEViewModel
 
@@ -80,18 +80,15 @@ class MainActivity : ComponentActivity() {
         val clipboard = getSystemService(CLIPBOARD_SERVICE) as android.content.ClipboardManager
         val text = clipboard.primaryClip?.getItemAt(0)?.text?.toString()?.trim() ?: return
 
-        // Nur laden wenn es wie verschlüsselter Text aussieht:
-        // reines Base64 (keine Leerzeichen), mindestens 32 Zeichen
         val base64Regex = Regex("^[A-Za-z0-9+/]+=*$")
         if (text.length >= 32 && !text.contains(' ') && base64Regex.matches(text)) {
-            // Nicht nochmal laden wenn bereits dasselbe im Feld steht
             if (text != vm.decryptInput.value) {
                 vm.onSharedTextReceived(text)
             }
         }
     }
 
-    /** Wird aufgerufen wenn die App bereits läuft und ein neuer Intent reinkommt */
+    /** Wird aufgerufen, wenn die App bereits läuft und ein neuer Intent reinkommt */
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
         setIntent(intent)
@@ -121,7 +118,6 @@ fun MainScreen(vm: E2EEViewModel, onScanQR: () -> Unit) {
     )
     var selectedTab by remember { mutableIntStateOf(0) }
 
-    // Automatisch zum Entschlüsseln-Tab wechseln wenn Text geteilt wurde
     LaunchedEffect(sharedTextPending) {
         if (sharedTextPending != null) {
             selectedTab = 1
