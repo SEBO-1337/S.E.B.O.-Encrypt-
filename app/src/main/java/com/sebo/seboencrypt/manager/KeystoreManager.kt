@@ -46,7 +46,6 @@ object KeystoreManager {
             try {
                 generate(buildSpec(strongBox = true))
             } catch (_: Exception) {
-                // StrongBox nicht verfügbar (Emulator, ältere Hardware) → TEE-Fallback
                 generate(buildSpec(strongBox = false))
             }
         } else {

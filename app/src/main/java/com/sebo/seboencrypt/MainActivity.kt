@@ -26,16 +26,13 @@ import com.sebo.seboencrypt.viewmodel.E2EEViewModel
 
 class MainActivity : ComponentActivity() {
 
-    // ZXing ActivityResult-Launcher
     private lateinit var qrScanLauncher: androidx.activity.result.ActivityResultLauncher<ScanOptions>
 
-    // ViewModel-Referenz für den Callback außerhalb von Composables
     private var viewModelRef: E2EEViewModel? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        // QR-Scanner registrieren
         qrScanLauncher = registerForActivityResult(ScanContract()) { result: ScanIntentResult ->
             val content = result.contents
             if (content != null) {
@@ -47,7 +44,6 @@ class MainActivity : ComponentActivity() {
         setContent {
             SEBOEncryptTheme {
                 val vm: E2EEViewModel = viewModel()
-                // ViewModel-Referenz für den Launcher-Callback setzen
                 LaunchedEffect(vm) { viewModelRef = vm }
 
                 MainScreen(
@@ -95,13 +91,11 @@ fun MainScreen(vm: E2EEViewModel, onScanQR: () -> Unit) {
                 .padding(innerPadding)
                 .imePadding()
         ) {
-            // Status-Banner
             StatusBanner(
                 status = status,
                 modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
             )
 
-            // Tab-Leiste
             TabRow(selectedTabIndex = selectedTab) {
                 tabs.forEach { (label, icon, index) ->
                     Tab(
@@ -113,7 +107,6 @@ fun MainScreen(vm: E2EEViewModel, onScanQR: () -> Unit) {
                 }
             }
 
-            // Tab-Inhalt
             when (selectedTab) {
                 0 -> EncryptTab(vm)
                 1 -> DecryptTab(vm)

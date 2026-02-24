@@ -40,7 +40,7 @@ class E2EEViewModel(app: Application) : AndroidViewModel(app) {
     val activeContact = _activeContact.asStateFlow()
 
     // --- Global Status ---
-    private val _status = MutableStateFlow(UiStatus("🔑", "Schluessel wurde generiert"))
+    private val _status = MutableStateFlow(UiStatus("🔑", "Schlüssel wurde generiert"))
     val status = _status.asStateFlow()
 
     // Zwischenspeicher für gescannten QR (wartet auf Namenseingabe)
@@ -88,7 +88,7 @@ class E2EEViewModel(app: Application) : AndroidViewModel(app) {
             _activeContact.value = contact
             pendingPublicKeyBase64 = null
             _hasPendingQR.value  = false
-            _status.value = UiStatus("✅", "\"${contact.name}\" hinzugefuegt & aktiv")
+            _status.value = UiStatus("✅", "\"${contact.name}\" hinzugefügt & aktiv")
         }.onFailure {
             _status.value = UiStatus("❌", "Ungültiger QR-Code: ${it.message}", isError = true)
         }
@@ -114,7 +114,7 @@ class E2EEViewModel(app: Application) : AndroidViewModel(app) {
             ContactRepository.saveContact(ctx, contact, _contacts.value)
             _contacts.value      = _contacts.value + contact
             _activeContact.value = contact
-            _status.value = UiStatus("✅", "\"${contact.name}\" hinzugefuegt & aktiv")
+            _status.value = UiStatus("✅", "\"${contact.name}\" hinzugefügt & aktiv")
         }.onFailure {
             _status.value = UiStatus("❌", "Ungültiger Public Key: ${it.message}", isError = true)
         }
@@ -151,7 +151,7 @@ class E2EEViewModel(app: Application) : AndroidViewModel(app) {
                 _status.value = UiStatus("⚠️", "Kein aktiver Kontakt - bitte QR scannen")
             }
         } else {
-            _status.value = UiStatus("🗑️", "Kontakt geloescht")
+            _status.value = UiStatus("🗑️", "Kontakt gelöscht")
         }
     }
 
@@ -159,7 +159,7 @@ class E2EEViewModel(app: Application) : AndroidViewModel(app) {
 
     fun encrypt() {
         val key = _activeContact.value?.sessionKey ?: run {
-            _status.value = UiStatus("⚠️", "Kein Kontakt ausgewaehlt", isError = true)
+            _status.value = UiStatus("⚠️", "Kein Kontakt ausgewählt", isError = true)
             return
         }
         runCatching {
@@ -172,7 +172,7 @@ class E2EEViewModel(app: Application) : AndroidViewModel(app) {
 
     fun decrypt() {
         val key = _activeContact.value?.sessionKey ?: run {
-            _status.value = UiStatus("⚠️", "Kein Kontakt ausgewaehlt", isError = true)
+            _status.value = UiStatus("⚠️", "Kein Kontakt ausgewählt", isError = true)
             return
         }
         runCatching {
