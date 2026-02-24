@@ -29,6 +29,10 @@ class E2EEViewModel(app: Application) : AndroidViewModel(app) {
     val decryptInput   = MutableStateFlow("")
     val decryptOutput  = MutableStateFlow("")
 
+    // --- Geteilter Text (Share-Intent) ---
+    private val _sharedTextPending = MutableStateFlow<String?>(null)
+    val sharedTextPending = _sharedTextPending.asStateFlow()
+
     // --- Key Tab ---
     val myQRBitmap     = MutableStateFlow<Bitmap?>(null)
 
@@ -215,5 +219,20 @@ class E2EEViewModel(app: Application) : AndroidViewModel(app) {
         } else {
             _status.value = UiStatus("⚠️", "Nichts zum Teilen - zuerst verschluesseln", isError = true)
         }
+    }
+
+    // ── Share-Intent ─────────────────────────────────────────────────────────
+
+    /** Wird aufgerufen wenn die App einen geteilten Text empfängt (z.B. aus WhatsApp) */
+    fun onSharedTextReceived(text: String) {
+        decryptInput.value = text
+        decryptOutput.value = ""
+        _sharedTextPending.value = text
+        _status.value = UiStatus("📥", "Text empfangen – Entschlüsseln tippen")
+    }
+
+    /** Bestätigt, dass der pending Share-Text verarbeitet wurde (Navigation erfolgt) */
+    fun consumeSharedText() {
+        _sharedTextPending.value = null
     }
 }

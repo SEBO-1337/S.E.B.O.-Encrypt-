@@ -1,5 +1,6 @@
 package com.sebo.seboencrypt
 
+import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -50,6 +51,11 @@ class MainActivity : ComponentActivity() {
                 val vm: E2EEViewModel = viewModel()
                 LaunchedEffect(vm) { viewModelRef = vm }
 
+                // Share-Intent beim App-Start auswerten
+                LaunchedEffect(Unit) {
+                    handleSharedText(intent, vm)
+                }
+
                 MainScreen(
                     vm = vm,
                     onScanQR = {
@@ -64,12 +70,49 @@ class MainActivity : ComponentActivity() {
             }
         }
     }
+
+    /** Beim Zurückkehren zur App Zwischenablage auf verschlüsselten Text prüfen */
+    override fun onResume() {
+        super.onResume()
+        val vm = viewModelRef ?: return
+        if (vm.sharedTextPending.value != null) return
+
+        val clipboard = getSystemService(CLIPBOARD_SERVICE) as android.content.ClipboardManager
+        val text = clipboard.primaryClip?.getItemAt(0)?.text?.toString()?.trim() ?: return
+
+        // Nur laden wenn es wie verschlüsselter Text aussieht:
+        // reines Base64 (keine Leerzeichen), mindestens 32 Zeichen
+        val base64Regex = Regex("^[A-Za-z0-9+/]+=*$")
+        if (text.length >= 32 && !text.contains(' ') && base64Regex.matches(text)) {
+            // Nicht nochmal laden wenn bereits dasselbe im Feld steht
+            if (text != vm.decryptInput.value) {
+                vm.onSharedTextReceived(text)
+            }
+        }
+    }
+
+    /** Wird aufgerufen wenn die App bereits läuft und ein neuer Intent reinkommt */
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        setIntent(intent)
+        viewModelRef?.let { handleSharedText(intent, it) }
+    }
+
+    private fun handleSharedText(intent: Intent, vm: E2EEViewModel) {
+        if (intent.action == Intent.ACTION_SEND && intent.type == "text/plain") {
+            val sharedText = intent.getStringExtra(Intent.EXTRA_TEXT)
+            if (!sharedText.isNullOrBlank()) {
+                vm.onSharedTextReceived(sharedText)
+            }
+        }
+    }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MainScreen(vm: E2EEViewModel, onScanQR: () -> Unit) {
     val status by vm.status.collectAsState()
+    val sharedTextPending by vm.sharedTextPending.collectAsState()
 
     val tabs = listOf(
         Triple("Verschlüsseln", Icons.Filled.Lock, 0),
@@ -77,6 +120,14 @@ fun MainScreen(vm: E2EEViewModel, onScanQR: () -> Unit) {
         Triple("Schlüssel", Icons.Filled.QrCode, 2)
     )
     var selectedTab by remember { mutableIntStateOf(0) }
+
+    // Automatisch zum Entschlüsseln-Tab wechseln wenn Text geteilt wurde
+    LaunchedEffect(sharedTextPending) {
+        if (sharedTextPending != null) {
+            selectedTab = 1
+            vm.consumeSharedText()
+        }
+    }
 
     Scaffold { innerPadding ->
         Box(
