@@ -1,41 +1,23 @@
 package com.sebo.seboencrypt.ui.screens
 
-import android.content.Context
-import android.graphics.Bitmap
-import androidx.compose.foundation.Image
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ContentCopy
-import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.Edit
-import androidx.compose.material.icons.filled.Info
-import androidx.compose.material.icons.filled.PersonAdd
-import androidx.compose.material.icons.filled.QrCodeScanner
-import androidx.compose.material.icons.filled.Share
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Button
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.PrimaryTabRow
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Tab
-import androidx.compose.material3.TabRow
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -45,16 +27,13 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.sebo.seboencrypt.ClipboardHelper
-import com.sebo.seboencrypt.ShareHelper
 import com.sebo.seboencrypt.model.Contact
+import com.sebo.seboencrypt.ui.components.keytab.ContactsSection
+import com.sebo.seboencrypt.ui.components.keytab.MyKeySection
 import com.sebo.seboencrypt.viewmodel.E2EEViewModel
 
 @Composable
@@ -247,7 +226,7 @@ fun KeyTab(
 
     // ── Haupt-Layout ─────────────────────────────────────────────────────────
     Column(modifier = Modifier.fillMaxSize()) {
-        TabRow(selectedTabIndex = selectedSubTab.intValue) {
+        PrimaryTabRow(selectedTabIndex = selectedSubTab.intValue) {
             Tab(
                 selected = selectedSubTab.intValue == 0,
                 onClick  = { selectedSubTab.intValue = 0 },
@@ -272,194 +251,6 @@ fun KeyTab(
                 onDelete      = { deleteTarget.value = it },
                 onDetail      = { detailContact.value = it }
             )
-        }
-    }
-}
-
-@Composable
-private fun MyKeySection(
-    vm: E2EEViewModel,
-    qrBitmap: Bitmap?,
-    context: Context
-) {
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(16.dp)
-            .verticalScroll(rememberScrollState()),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(16.dp)
-    ) {
-        Text("Mein öffentlicher Schlüssel", style = MaterialTheme.typography.titleMedium)
-        Text(
-            "Zeige diesen QR-Code deinem Kontakt zum Einscannen oder teile den Key als Text.",
-            style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
-        )
-
-        qrBitmap?.let { bmp: Bitmap ->
-            Card(
-                modifier  = Modifier.size(260.dp),
-                elevation = CardDefaults.cardElevation(4.dp)
-            ) {
-                Image(
-                    bitmap             = bmp.asImageBitmap(),
-                    contentDescription = "Mein QR-Code",
-                    modifier           = Modifier.fillMaxSize().padding(8.dp)
-                )
-            }
-        }
-
-        HorizontalDivider()
-        Text("Key als Text teilen", style = MaterialTheme.typography.titleSmall)
-
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            OutlinedButton(
-                onClick  = { ClipboardHelper.copyToClipboard(context, vm.getMyPublicKeyBase64()) },
-                modifier = Modifier.weight(1f)
-            ) {
-                Icon(Icons.Filled.ContentCopy, contentDescription = null, modifier = Modifier.size(16.dp))
-                Spacer(Modifier.width(4.dp))
-                Text("Kopieren")
-            }
-            Button(
-                onClick  = { ShareHelper.shareViaWhatsApp(context, vm.getMyPublicKeyBase64()) },
-                modifier = Modifier.weight(1f)
-            ) {
-                Icon(Icons.Filled.Share, contentDescription = null, modifier = Modifier.size(16.dp))
-                Spacer(Modifier.width(4.dp))
-                Text("Teilen")
-            }
-        }
-    }
-}
-
-@Composable
-private fun ContactsSection(
-    contacts: List<Contact>,
-    activeContact: Contact?,
-    onScanQR: () -> Unit,
-    onManualAdd: () -> Unit,
-    onSelect: (Contact) -> Unit,
-    onRename: (Contact) -> Unit,
-    onDelete: (Contact) -> Unit,
-    onDetail: (Contact) -> Unit
-) {
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(16.dp)
-            .verticalScroll(rememberScrollState()),
-        verticalArrangement = Arrangement.spacedBy(12.dp)
-    ) {
-        Text("Kontakt hinzufügen", style = MaterialTheme.typography.titleMedium)
-
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            Button(onClick = onScanQR, modifier = Modifier.weight(1f)) {
-                Icon(Icons.Filled.QrCodeScanner, contentDescription = null, modifier = Modifier.size(16.dp))
-                Spacer(Modifier.width(4.dp))
-                Text("QR scannen")
-            }
-            OutlinedButton(onClick = onManualAdd, modifier = Modifier.weight(1f)) {
-                Icon(Icons.Filled.PersonAdd, contentDescription = null, modifier = Modifier.size(16.dp))
-                Spacer(Modifier.width(4.dp))
-                Text("Manuell")
-            }
-        }
-
-        if (contacts.isNotEmpty()) {
-            HorizontalDivider()
-            Text("Kontakte (${contacts.size})", style = MaterialTheme.typography.titleMedium)
-            contacts.forEach { contact ->
-                ContactListItem(
-                    contact  = contact,
-                    isActive = contact.id == activeContact?.id,
-                    onSelect = { onSelect(contact) },
-                    onRename = { onRename(contact) },
-                    onDelete = { onDelete(contact) },
-                    onDetail = { onDetail(contact) }
-                )
-            }
-        } else {
-            Surface(
-                modifier = Modifier.fillMaxWidth(),
-                color    = MaterialTheme.colorScheme.surfaceVariant,
-                shape    = MaterialTheme.shapes.medium
-            ) {
-                Column(
-                    modifier = Modifier.padding(24.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    Text("Noch keine Kontakte", style = MaterialTheme.typography.bodyMedium)
-                    Text(
-                        "Scanne den QR-Code oder füge manuell mit Public Key hinzu.",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
-            }
-        }
-    }
-}
-
-@Composable
-fun ContactListItem(
-    contact: Contact,
-    isActive: Boolean,
-    onSelect: () -> Unit,
-    onRename: () -> Unit,
-    onDelete: () -> Unit,
-    onDetail: () -> Unit = {}
-) {
-    Surface(
-        color    = if (isActive) MaterialTheme.colorScheme.primaryContainer
-                   else MaterialTheme.colorScheme.surfaceVariant,
-        shape    = MaterialTheme.shapes.medium,
-        modifier = Modifier.fillMaxWidth().clickable { onSelect() }
-    ) {
-        Row(
-            modifier = Modifier.padding(horizontal = 12.dp, vertical = 10.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    text       = contact.name,
-                    style      = MaterialTheme.typography.bodyLarge,
-                    fontWeight = if (isActive) FontWeight.Bold else FontWeight.Normal,
-                    maxLines   = 1,
-                    overflow   = TextOverflow.Ellipsis
-                )
-                Text(
-                    text     = contact.publicKeyBase64.take(24) + "...",
-                    style    = MaterialTheme.typography.labelSmall,
-                    color    = MaterialTheme.colorScheme.onSurfaceVariant,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
-                )
-                if (isActive) {
-                    Text(
-                        text  = "Aktiv",
-                        style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.primary
-                    )
-                }
-            }
-            IconButton(onClick = onDetail) {
-                Icon(Icons.Filled.Info, contentDescription = "Details")
-            }
-            IconButton(onClick = onRename) {
-                Icon(Icons.Filled.Edit, contentDescription = "Umbenennen")
-            }
-            IconButton(onClick = onDelete) {
-                Icon(Icons.Filled.Delete, contentDescription = "Löschen", tint = MaterialTheme.colorScheme.error)
-            }
         }
     }
 }
