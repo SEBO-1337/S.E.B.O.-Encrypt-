@@ -146,7 +146,7 @@ fun MainScreen(vm: E2EEViewModel, onScanQR: () -> Unit) {
                     contentScale = ContentScale.FillWidth
                 )
 
-                TabRow(selectedTabIndex = selectedTab) {
+                PrimaryTabRow(selectedTabIndex = selectedTab) {
                     tabs.forEach { (label, icon, index) ->
                         Tab(
                             selected = selectedTab == index,
