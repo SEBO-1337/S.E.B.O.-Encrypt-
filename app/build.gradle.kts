@@ -56,7 +56,7 @@ dependencies {
     debugImplementation(libs.androidx.compose.ui.tooling)
     debugImplementation(libs.androidx.compose.ui.test.manifest)
 
-    implementation(libs.androidx.security.crypto)
+    implementation(libs.androidx.biometric)
     implementation(libs.core)
     implementation(libs.zxing.android.embedded)
     implementation(libs.bcprov.jdk18on)

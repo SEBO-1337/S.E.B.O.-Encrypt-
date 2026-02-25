@@ -1,4 +1,4 @@
-package com.sebo.seboencrypt
+package com.sebo.seboencrypt.helper
 
 import org.bouncycastle.crypto.digests.SHA256Digest
 import org.bouncycastle.crypto.generators.HKDFBytesGenerator

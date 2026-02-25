@@ -5,7 +5,7 @@ import android.content.Context
 import android.graphics.Bitmap
 import androidx.lifecycle.AndroidViewModel
 import com.sebo.seboencrypt.ClipboardHelper
-import com.sebo.seboencrypt.KeyDerivation
+import com.sebo.seboencrypt.helper.KeyDerivation
 import com.sebo.seboencrypt.QRHelper
 import com.sebo.seboencrypt.ShareHelper
 import com.sebo.seboencrypt.engine.CryptoEngine
@@ -47,16 +47,22 @@ class E2EEViewModel(app: Application) : AndroidViewModel(app) {
     private val _status = MutableStateFlow(UiStatus("🔑", "Schlüssel wurde generiert"))
     val status = _status.asStateFlow()
 
-    // Zwischenspeicher für gescannten QR (wartet auf Namenseingabe)
+    // Fix 5: App-Sperr-State – UI wird erst nach erfolgreicher Authentifizierung angezeigt
+    val isAuthenticated = MutableStateFlow(false)
+
+    // Zwischenspeicher für gescannten QR (wartet auf Fingerprint-Verifikation + Namenseingabe)
     private var pendingPublicKeyBase64: String? = null
     private val _hasPendingQR = MutableStateFlow(false)
     val hasPendingQR = _hasPendingQR.asStateFlow()
+
+    // Fix 2 (TOFU): Fingerprint des zuletzt gescannten Keys für den Verifikations-Dialog
+    private val _pendingFingerprint = MutableStateFlow<String?>(null)
+    val pendingFingerprint = _pendingFingerprint.asStateFlow()
 
     init {
         KeystoreManager.generateKeyPairIfAbsent()
         myQRBitmap.value = QRHelper.publicKeyToQR(KeystoreManager.getPublicKey())
         _contacts.value = ContactRepository.loadContacts(ctx)
-        // Letzten aktiven Kontakt wiederherstellen (ersten nehmen falls vorhanden)
         _activeContact.value = _contacts.value.firstOrNull()
         if (_activeContact.value != null) {
             _status.value = UiStatus("✅", "Kontakt \"${_activeContact.value!!.name}\" aktiv")
@@ -65,14 +71,29 @@ class E2EEViewModel(app: Application) : AndroidViewModel(app) {
 
     // ── QR-Scan ──────────────────────────────────────────────────────────────
 
-    /** Wird nach dem QR-Scan aufgerufen – speichert den Key temporär bis ein Name vergeben wird */
+    /** Wird nach dem QR-Scan aufgerufen – berechnet Fingerprint und wartet auf TOFU-Bestätigung */
     fun onQRScanned(qrContent: String) {
         pendingPublicKeyBase64 = qrContent
+        // Fix 2: Fingerprint sofort berechnen und für den Dialog bereitstellen
+        runCatching {
+            val publicKey = QRHelper.qrStringToPublicKey(qrContent)
+            _pendingFingerprint.value = QRHelper.publicKeyFingerprint(publicKey)
+        }.onFailure {
+            _pendingFingerprint.value = null
+        }
         _hasPendingQR.value = true
-        _status.value = UiStatus("📷", "QR gescannt - bitte Namen vergeben")
+        _status.value = UiStatus("📷", "QR gescannt – bitte Fingerprint verifizieren")
     }
 
-    /** Kontakt mit Namen speichern (nach QR-Scan) */
+    /** Fix 2: Bricht den ausstehenden QR-Scan ab (Nutzer hat Fingerprint-Dialog abgebrochen) */
+    fun cancelPendingQR() {
+        pendingPublicKeyBase64 = null
+        _pendingFingerprint.value = null
+        _hasPendingQR.value = false
+        _status.value = UiStatus("⚠️", "Schlüsselaustausch abgebrochen")
+    }
+
+    /** Kontakt mit Namen speichern (nach QR-Scan + TOFU-Bestätigung) */
     fun confirmAddContact(name: String) {
         val base64 = pendingPublicKeyBase64 ?: run {
             _status.value = UiStatus("❌", "Kein QR-Code gescannt", isError = true)
@@ -82,15 +103,19 @@ class E2EEViewModel(app: Application) : AndroidViewModel(app) {
             val theirPublicKey = QRHelper.qrStringToPublicKey(base64)
             val sharedSecret   = KeystoreManager.computeSharedSecret(theirPublicKey)
             val sessionKey     = KeyDerivation.deriveAesKey(sharedSecret)
+            // Fix 2: Fingerprint im Kontakt persistieren
+            val fingerprint    = QRHelper.publicKeyFingerprint(theirPublicKey)
             val contact = Contact(
                 name            = name.trim().ifEmpty { "Kontakt ${_contacts.value.size + 1}" },
                 publicKeyBase64 = base64,
+                fingerprint     = fingerprint,
                 sessionKey      = sessionKey
             )
             ContactRepository.saveContact(ctx, contact, _contacts.value)
             _contacts.value += contact
             _activeContact.value = contact
             pendingPublicKeyBase64 = null
+            _pendingFingerprint.value = null
             _hasPendingQR.value  = false
             _status.value = UiStatus("✅", "\"${contact.name}\" hinzugefügt & aktiv")
         }.onFailure {
@@ -110,9 +135,12 @@ class E2EEViewModel(app: Application) : AndroidViewModel(app) {
             val theirPublicKey = QRHelper.qrStringToPublicKey(base64PublicKey.trim())
             val sharedSecret   = KeystoreManager.computeSharedSecret(theirPublicKey)
             val sessionKey     = KeyDerivation.deriveAesKey(sharedSecret)
+            // Fix 2: Fingerprint im Kontakt persistieren
+            val fingerprint    = QRHelper.publicKeyFingerprint(theirPublicKey)
             val contact = Contact(
                 name            = name.trim().ifEmpty { "Kontakt ${_contacts.value.size + 1}" },
                 publicKeyBase64 = base64PublicKey.trim(),
+                fingerprint     = fingerprint,
                 sessionKey      = sessionKey
             )
             ContactRepository.saveContact(ctx, contact, _contacts.value)
@@ -130,7 +158,6 @@ class E2EEViewModel(app: Application) : AndroidViewModel(app) {
             KeystoreManager.getPublicKey().encoded,
             android.util.Base64.NO_WRAP
         )
-
 
     /** Kontakt umbenennen */
     fun renameContact(contactId: String, newName: String) {
@@ -234,5 +261,21 @@ class E2EEViewModel(app: Application) : AndroidViewModel(app) {
     /** Bestätigt, dass der pending Share-Text verarbeitet wurde (Navigation erfolgt) */
     fun consumeSharedText() {
         _sharedTextPending.value = null
+    }
+
+    // ── Lifecycle / Sicherheit ────────────────────────────────────────────────
+
+    /**
+     * Fix 3: Alle Session Keys im RAM mit Nullen überschreiben.
+     * Wird in onCleared() aufgerufen wenn das ViewModel zerstört wird.
+     */
+    private fun clearSessionKeys() {
+        _contacts.value.forEach { it.wipe() }
+        _activeContact.value?.wipe()
+    }
+
+    override fun onCleared() {
+        super.onCleared()
+        clearSessionKeys()
     }
 }

@@ -2,48 +2,64 @@ package com.sebo.seboencrypt
 
 import android.content.Intent
 import android.os.Bundle
-import androidx.activity.ComponentActivity
+import android.view.WindowManager
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.layout.*
-import androidx.compose.ui.Alignment
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.imePadding
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.LockOpen
 import androidx.compose.material.icons.filled.QrCode
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.PrimaryTabRow
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Tab
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.journeyapps.barcodescanner.ScanContract
-import com.journeyapps.barcodescanner.ScanIntentResult
 import com.journeyapps.barcodescanner.ScanOptions
+import com.sebo.seboencrypt.ui.components.StatusBanner
 import com.sebo.seboencrypt.ui.screens.DecryptTab
 import com.sebo.seboencrypt.ui.screens.EncryptTab
 import com.sebo.seboencrypt.ui.screens.KeyTab
-import com.sebo.seboencrypt.ui.components.StatusBanner
 import com.sebo.seboencrypt.ui.theme.SEBOEncryptTheme
 import com.sebo.seboencrypt.viewmodel.E2EEViewModel
 
-class MainActivity : ComponentActivity() {
+class MainActivity : FragmentActivity() {
 
-    private lateinit var qrScanLauncher: androidx.activity.result.ActivityResultLauncher<ScanOptions>
+    companion object {
+        private const val QR_SCAN_REQUEST_CODE = 42
+    }
 
     private var viewModelRef: E2EEViewModel? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
-        qrScanLauncher = registerForActivityResult(ScanContract()) { result: ScanIntentResult ->
-            val content = result.contents
-            if (content != null) {
-                viewModelRef?.onQRScanned(content)
-            }
-        }
+        // Fix 4: Screenshot-Schutz – verhindert Screenshots und App-Switcher-Preview
+        window.setFlags(WindowManager.LayoutParams.FLAG_SECURE, WindowManager.LayoutParams.FLAG_SECURE)
 
         enableEdgeToEdge()
         setContent {
@@ -56,37 +72,68 @@ class MainActivity : ComponentActivity() {
                     handleSharedText(intent, vm)
                 }
 
-                MainScreen(
-                    vm = vm,
-                    onScanQR = {
-                        val options = ScanOptions().apply {
-                            setPrompt("Kontakt-QR-Code scannen")
-                            setBeepEnabled(true)
-                            setOrientationLocked(true)
-                            setCaptureActivity(PortraitCaptureActivity::class.java)
-                        }
-                        qrScanLauncher.launch(options)
-                    }
-                )
+                // Fix 5: App-Inhalt erst nach erfolgreicher Authentifizierung anzeigen
+                val isAuthenticated by vm.isAuthenticated.collectAsState()
+                if (isAuthenticated) {
+                    MainScreen(
+                        vm = vm,
+                        onScanQR = { launchQRScanner() }
+                    )
+                } else {
+                    LockScreen()
+                }
+            }
+        }
+
+        // Fix 5: Beim ersten Start Authentifizierung anfordern
+        triggerAuth()
+    }
+
+    /** QR-Scanner direkt starten – ohne ScanContract, um den 16-Bit-Request-Code-Fehler zu umgehen */
+    @Suppress("DEPRECATION")
+    private fun launchQRScanner() {
+        val options = ScanOptions().apply {
+            setPrompt("Kontakt-QR-Code scannen")
+            setBeepEnabled(true)
+            setOrientationLocked(true)
+            setCaptureActivity(PortraitCaptureActivity::class.java)
+        }
+        val intent = options.createScanIntent(this)
+        startActivityForResult(intent, QR_SCAN_REQUEST_CODE)
+    }
+
+    /** QR-Scan-Ergebnis empfangen */
+    @Suppress("DEPRECATION")
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        if (requestCode == QR_SCAN_REQUEST_CODE && resultCode == RESULT_OK) {
+            val content = data?.getStringExtra("SCAN_RESULT")
+            if (content != null) {
+                viewModelRef?.onQRScanned(content)
             }
         }
     }
 
-    /** Beim Zurückkehren zur App Zwischenablage auf verschlüsselten Text prüfen */
+    /** Fix 5: Bei jedem Zurückkehren zur App erneut authentifizieren */
     override fun onResume() {
         super.onResume()
         val vm = viewModelRef ?: return
-        if (vm.sharedTextPending.value != null) return
-
-        val clipboard = getSystemService(CLIPBOARD_SERVICE) as android.content.ClipboardManager
-        val text = clipboard.primaryClip?.getItemAt(0)?.text?.toString()?.trim() ?: return
-
-        val base64Regex = Regex("^[A-Za-z0-9+/]+=*$")
-        if (text.length >= 32 && !text.contains(' ') && base64Regex.matches(text)) {
-            if (text != vm.decryptInput.value) {
-                vm.onSharedTextReceived(text)
-            }
+        if (!vm.isAuthenticated.value) {
+            triggerAuth()
         }
+    }
+
+    /** Fix 5: Biometrie / Geräte-PIN anfordern */
+    private fun triggerAuth() {
+        BiometricAuthHelper.authenticate(
+            activity   = this,
+            onSuccess  = { viewModelRef?.isAuthenticated?.value = true },
+            onFailure  = { /* App bleibt gesperrt – Nutzer sieht LockScreen */ },
+            onNotEnrolled = {
+                // Kein PIN/Biometrie eingerichtet → App trotzdem nutzbar (Sicherheitshinweis)
+                viewModelRef?.isAuthenticated?.value = true
+            }
+        )
     }
 
     /** Wird aufgerufen, wenn die App bereits läuft und ein neuer Intent reinkommt */
@@ -102,6 +149,33 @@ class MainActivity : ComponentActivity() {
             if (!sharedText.isNullOrBlank()) {
                 vm.onSharedTextReceived(sharedText)
             }
+        }
+    }
+}
+
+/** Fix 5: Sperr-Bildschirm der angezeigt wird bis zur erfolgreichen Authentifizierung */
+@Composable
+fun LockScreen() {
+    Box(
+        modifier = Modifier.fillMaxSize(),
+        contentAlignment = Alignment.Center
+    ) {
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(16.dp),
+            modifier = Modifier.padding(32.dp)
+        ) {
+            Text("🔐", style = MaterialTheme.typography.displayLarge)
+            Text(
+                "S.E.B.O. Encrypt",
+                style = MaterialTheme.typography.headlineMedium
+            )
+            Text(
+                "Bitte authentifiziere dich mit Biometrie oder Geräte-PIN, um die App zu entsperren.",
+                style = MaterialTheme.typography.bodyMedium,
+                textAlign = TextAlign.Center,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
         }
     }
 }

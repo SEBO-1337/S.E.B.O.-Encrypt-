@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ContentCopy
+import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -29,6 +30,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
 import com.sebo.seboencrypt.ClipboardHelper
 import com.sebo.seboencrypt.model.Contact
@@ -41,31 +43,84 @@ fun KeyTab(
     vm: E2EEViewModel,
     onScanQR: () -> Unit
 ) {
-    val context        = LocalContext.current
-    val qrBitmap       by vm.myQRBitmap.collectAsState()
-    val contacts       by vm.contacts.collectAsState()
-    val activeContact  by vm.activeContact.collectAsState()
-    val hasPendingQR   by vm.hasPendingQR.collectAsState()
+    val context           = LocalContext.current
+    val qrBitmap          by vm.myQRBitmap.collectAsState()
+    val contacts          by vm.contacts.collectAsState()
+    val activeContact     by vm.activeContact.collectAsState()
+    val hasPendingQR      by vm.hasPendingQR.collectAsState()
+    // Fix 2 (TOFU): Fingerprint des gescannten Keys für den Verifikations-Dialog
+    val pendingFingerprint by vm.pendingFingerprint.collectAsState()
 
     val selectedSubTab = remember { mutableIntStateOf(0) }
 
     // Dialog-States
-    val showNameDialog      = remember { mutableStateOf(false) }
-    val pendingName         = remember { mutableStateOf("") }
-    val showManualAddDialog = remember { mutableStateOf(false) }
-    val manualName          = remember { mutableStateOf("") }
-    val manualKey           = remember { mutableStateOf("") }
-    val renameTarget        = remember { mutableStateOf<Contact?>(null) }
-    val renameText          = remember { mutableStateOf("") }
-    val deleteTarget        = remember { mutableStateOf<Contact?>(null) }
-    val detailContact       = remember { mutableStateOf<Contact?>(null) }
+    val showFingerprintDialog = remember { mutableStateOf(false) }
+    val showNameDialog        = remember { mutableStateOf(false) }
+    val pendingName           = remember { mutableStateOf("") }
+    val showManualAddDialog   = remember { mutableStateOf(false) }
+    val manualName            = remember { mutableStateOf("") }
+    val manualKey             = remember { mutableStateOf("") }
+    val renameTarget          = remember { mutableStateOf<Contact?>(null) }
+    val renameText            = remember { mutableStateOf("") }
+    val deleteTarget          = remember { mutableStateOf<Contact?>(null) }
+    val detailContact         = remember { mutableStateOf<Contact?>(null) }
 
-    // Dialog nach QR-Scan öffnen
+    // Fix 2: Erst Fingerprint-Verifikation, dann Namens-Dialog
     LaunchedEffect(hasPendingQR) {
         if (hasPendingQR) {
             pendingName.value = ""
-            showNameDialog.value = true
+            showFingerprintDialog.value = true
         }
+    }
+
+    // ── Dialog: Fix 2 – TOFU Fingerprint-Verifikation ──────────────────────
+    if (showFingerprintDialog.value) {
+        AlertDialog(
+            onDismissRequest = {
+                showFingerprintDialog.value = false
+                vm.cancelPendingQR()
+            },
+            icon = { Icon(Icons.Filled.Warning, contentDescription = null, tint = MaterialTheme.colorScheme.primary) },
+            title = { Text("Schlüssel verifizieren") },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                    Text(
+                        "Vergleiche den folgenden Fingerprint mit dem, den dein Kontakt auf seinem Gerät sieht. Stimmt er überein, ist die Verbindung sicher (TOFU).",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    Surface(
+                        color = MaterialTheme.colorScheme.secondaryContainer,
+                        shape = MaterialTheme.shapes.medium,
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Text(
+                            text = pendingFingerprint ?: "Fingerprint nicht verfügbar",
+                            style = MaterialTheme.typography.bodyMedium.copy(fontFamily = FontFamily.Monospace),
+                            color = MaterialTheme.colorScheme.onSecondaryContainer,
+                            modifier = Modifier.padding(12.dp)
+                        )
+                    }
+                    Text(
+                        "⚠️ Brich ab, wenn der Fingerprint nicht übereinstimmt!",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.error
+                    )
+                }
+            },
+            confirmButton = {
+                TextButton(onClick = {
+                    showFingerprintDialog.value = false
+                    showNameDialog.value = true
+                }) { Text("✅ Fingerprint stimmt überein") }
+            },
+            dismissButton = {
+                TextButton(onClick = {
+                    showFingerprintDialog.value = false
+                    vm.cancelPendingQR()
+                }) { Text("❌ Abbrechen") }
+            }
+        )
     }
 
     // ── Dialog: Nach QR-Scan benennen ────────────────────────────────────────
@@ -196,6 +251,22 @@ fun KeyTab(
             title = { Text(contact.name) },
             text = {
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    // Fix 2: Fingerprint anzeigen
+                    if (contact.fingerprint.isNotEmpty()) {
+                        Text("🔏 Schlüssel-Fingerprint:", style = MaterialTheme.typography.labelMedium)
+                        Surface(
+                            color = MaterialTheme.colorScheme.secondaryContainer,
+                            shape = MaterialTheme.shapes.small,
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Text(
+                                text = contact.fingerprint,
+                                style = MaterialTheme.typography.bodySmall.copy(fontFamily = FontFamily.Monospace),
+                                color = MaterialTheme.colorScheme.onSecondaryContainer,
+                                modifier = Modifier.padding(8.dp)
+                            )
+                        }
+                    }
                     Text("Öffentlicher Schlüssel:", style = MaterialTheme.typography.labelMedium)
                     Surface(
                         color = MaterialTheme.colorScheme.surfaceVariant,

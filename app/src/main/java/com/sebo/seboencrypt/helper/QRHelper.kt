@@ -1,14 +1,15 @@
 package com.sebo.seboencrypt
 
 import android.graphics.Bitmap
+import android.util.Base64
 import androidx.core.graphics.createBitmap
 import androidx.core.graphics.set
 import com.google.zxing.BarcodeFormat
 import com.google.zxing.qrcode.QRCodeWriter
 import java.security.KeyFactory
+import java.security.MessageDigest
 import java.security.PublicKey
 import java.security.spec.X509EncodedKeySpec
-import android.util.Base64
 
 object QRHelper {
 
@@ -25,5 +26,14 @@ object QRHelper {
         val decoded = Base64.decode(base64, Base64.NO_WRAP)
         return KeyFactory.getInstance("EC")
             .generatePublic(X509EncodedKeySpec(decoded))
+    }
+
+    /**
+     * Fix 2 (TOFU): SHA-256-Fingerprint des Public Keys als lesbaren Hex-String zurückgeben.
+     * Format: "AB:CD:EF:..." (32 Byte = 64 Hex-Zeichen, gruppiert mit Doppelpunkten)
+     */
+    fun publicKeyFingerprint(publicKey: PublicKey): String {
+        val digest = MessageDigest.getInstance("SHA-256").digest(publicKey.encoded)
+        return digest.joinToString(":") { "%02X".format(it) }
     }
 }
