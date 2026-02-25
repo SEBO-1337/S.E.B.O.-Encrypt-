@@ -121,10 +121,6 @@ Voraussetzungen:
 - JDK 11+
 - Android SDK 36
 
-```bash
-# Debug-APK bauen
-./gradlew assembleDebug
-```
 
 ---
 
