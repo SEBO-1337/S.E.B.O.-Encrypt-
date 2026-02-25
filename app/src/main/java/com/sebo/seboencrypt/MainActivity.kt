@@ -62,7 +62,8 @@ class MainActivity : ComponentActivity() {
                         val options = ScanOptions().apply {
                             setPrompt("Kontakt-QR-Code scannen")
                             setBeepEnabled(true)
-                            setOrientationLocked(false)
+                            setOrientationLocked(true)
+                            setCaptureActivity(PortraitCaptureActivity::class.java)
                         }
                         qrScanLauncher.launch(options)
                     }
