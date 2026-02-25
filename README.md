@@ -1,4 +1,6 @@
-# S.E.B.O. Encrypt
+<p align="center">
+  <img src="app/src/main/res/drawable/banner.png" alt="S.E.B.O. Encrypt" width="100%" />
+</p>
 
 Eine Android-App zur Ende-zu-Ende-verschlüsselten Kommunikation über beliebige Messenger (z. B. WhatsApp). Nachrichten werden lokal verschlüsselt und können als Text geteilt werden – der Messenger selbst sieht nur unlesbaren Chiffretext.
 
@@ -127,4 +129,3 @@ Voraussetzungen:
 ## Lizenz
 
 Dieses Projekt ist privat und nicht zur öffentlichen Verbreitung freigegeben.
-
