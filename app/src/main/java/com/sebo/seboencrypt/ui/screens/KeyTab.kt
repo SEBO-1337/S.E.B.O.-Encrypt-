@@ -30,7 +30,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
-import com.sebo.seboencrypt.ClipboardHelper
+import com.sebo.seboencrypt.helper.ClipboardHelper
 import com.sebo.seboencrypt.model.Contact
 import com.sebo.seboencrypt.ui.components.keytab.ContactsSection
 import com.sebo.seboencrypt.ui.components.keytab.MyKeySection

@@ -2,8 +2,8 @@ package com.sebo.seboencrypt.repository
 
 import android.content.Context
 import androidx.core.content.edit
-import com.sebo.seboencrypt.KeyDerivation
-import com.sebo.seboencrypt.QRHelper
+import com.sebo.seboencrypt.helper.KeyDerivation
+import com.sebo.seboencrypt.helper.QRHelper
 import com.sebo.seboencrypt.manager.KeystoreManager
 import com.sebo.seboencrypt.model.Contact
 import org.json.JSONArray

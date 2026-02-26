@@ -30,8 +30,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.unit.dp
-import com.sebo.seboencrypt.ClipboardHelper
-import com.sebo.seboencrypt.ShareHelper
+import com.sebo.seboencrypt.helper.ClipboardHelper
+import com.sebo.seboencrypt.helper.ShareHelper
 import com.sebo.seboencrypt.viewmodel.E2EEViewModel
 
 @Composable
