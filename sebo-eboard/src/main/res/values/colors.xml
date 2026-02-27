@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Tastatur-Hintergrund -->
+    <color name="keyboard_background">#1E1E1E</color>
+
+    <!-- Tasten-Farben -->
+    <color name="key_normal">#3C3C3C</color>
+    <color name="key_pressed">#555555</color>
+    <color name="key_border">#2A2A2A</color>
+
+    <!-- Text-Farben -->
+    <color name="key_text">#FFFFFF</color>
+    <color name="key_text_secondary">#BBBBBB</color>
+</resources>
+

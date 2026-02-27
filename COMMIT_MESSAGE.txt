@@ -1,0 +1,48 @@
+feat: Add S.E.B.O. E-Board custom keyboard with full E2EE support
+
+## Features
+- Custom keyboard (InputMethodService) with QWERTZ layout
+- System-wide encryption/decryption in any app (🔒/🔓 keys)
+- Auto-sync session keys between app and keyboard via SharedPreferences
+- Real AES-256-GCM encryption/decryption directly in keyboard
+- Shift/Caps Lock support
+
+## Implementation Details
+
+### New Module: sebo-eboard
+- `CustomKeyboardService`: InputMethodService with crypto integration
+- `CryptoEngine`: AES-GCM encryption (identical to main app)
+- `ContactManager`: Loads contacts & session keys from SharedPreferences
+- `KeyboardContact`: Simplified contact model for keyboard
+
+### Main App Changes
+- `KeyboardSyncHelper`: Syncs session keys to SharedPreferences
+- `E2EEViewModel`: Extended to auto-sync all session keys
+- `MainActivity`: Added "Activate E-Board" button
+
+### Resources
+- QWERTZ keyboard layout (res/xml/qwerty.xml)
+- Custom key backgrounds with Material Design
+- Keyboard view layout with dark theme
+
+## Technical Stack
+- Android KeyboardView/InputMethodService (deprecated but stable)
+- SharedPreferences for cross-process communication
+- AES-256-GCM with 12-byte IV and 128-bit auth tag
+- No network permissions required
+
+## Usage
+1. Add contact in main app (QR scan)
+2. Session key auto-syncs to keyboard
+3. Switch to S.E.B.O. E-Board in any app
+4. Type text → press 🔒 → encrypted
+5. Receive encrypted text → press 🔓 → decrypted
+
+## Security
+- Private ECDH key stays in Android Keystore (keyboard has no access)
+- Only session keys are shared via EncryptedSharedPreferences
+- No internet access, no data collection
+- Open source - verifiable encryption
+
+Closes #[issue-number-if-any]
+

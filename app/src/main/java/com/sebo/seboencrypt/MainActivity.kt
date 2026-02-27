@@ -7,6 +7,8 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.ui.Alignment
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Lock
@@ -111,6 +113,7 @@ class MainActivity : ComponentActivity() {
 fun MainScreen(vm: E2EEViewModel, onScanQR: () -> Unit) {
     val status by vm.status.collectAsState()
     val sharedTextPending by vm.sharedTextPending.collectAsState()
+    val context = androidx.compose.ui.platform.LocalContext.current
 
     val tabs = listOf(
         Triple("Verschlüsseln", Icons.Filled.Lock, 0),
@@ -135,6 +138,7 @@ fun MainScreen(vm: E2EEViewModel, onScanQR: () -> Unit) {
             Column(
                 modifier = Modifier
                     .fillMaxSize()
+                    .verticalScroll(rememberScrollState())
                     .imePadding()
             ) {
                 Image(
@@ -145,6 +149,29 @@ fun MainScreen(vm: E2EEViewModel, onScanQR: () -> Unit) {
                         .height(140.dp),
                     contentScale = ContentScale.FillWidth
                 )
+
+                // Button zum Aktivieren der S.E.B.O. E-Board Tastatur
+                Button(
+                    onClick = {
+                        val intent = Intent(android.provider.Settings.ACTION_INPUT_METHOD_SETTINGS)
+                        context.startActivity(intent)
+                    },
+                    modifier = Modifier
+                        .align(Alignment.CenterHorizontally)
+                        .padding(vertical = 8.dp)
+                        .fillMaxWidth(0.9f),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.secondary
+                    )
+                ) {
+                    Icon(
+                        Icons.Filled.QrCode,
+                        contentDescription = null,
+                        modifier = Modifier.size(20.dp)
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text("S.E.B.O. E-Board aktivieren")
+                }
 
                 PrimaryTabRow(selectedTabIndex = selectedTab) {
                     tabs.forEach { (label, icon, index) ->

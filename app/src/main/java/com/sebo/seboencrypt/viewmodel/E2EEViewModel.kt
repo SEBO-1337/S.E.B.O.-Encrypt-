@@ -6,6 +6,7 @@ import android.graphics.Bitmap
 import androidx.lifecycle.AndroidViewModel
 import com.sebo.seboencrypt.helper.ClipboardHelper
 import com.sebo.seboencrypt.helper.KeyDerivation
+import com.sebo.seboencrypt.helper.KeyboardSyncHelper
 import com.sebo.seboencrypt.helper.QRHelper
 import com.sebo.seboencrypt.helper.ShareHelper
 import com.sebo.seboencrypt.engine.CryptoEngine
@@ -56,9 +57,18 @@ class E2EEViewModel(app: Application) : AndroidViewModel(app) {
         KeystoreManager.generateKeyPairIfAbsent()
         myQRBitmap.value = QRHelper.publicKeyToQR(KeystoreManager.getPublicKey())
         _contacts.value = ContactRepository.loadContacts(ctx)
+
+        // Synchronisiere alle SessionKeys mit der Tastatur
+        _contacts.value.forEach { contact ->
+            contact.sessionKey?.let { sessionKey ->
+                KeyboardSyncHelper.saveSessionKey(ctx, contact.id, sessionKey)
+            }
+        }
+
         // Letzten aktiven Kontakt wiederherstellen (ersten nehmen falls vorhanden)
         _activeContact.value = _contacts.value.firstOrNull()
         if (_activeContact.value != null) {
+            KeyboardSyncHelper.setActiveContact(ctx, _activeContact.value!!.id)
             _status.value = UiStatus("✅", "Kontakt \"${_activeContact.value!!.name}\" aktiv")
         }
     }
@@ -92,6 +102,11 @@ class E2EEViewModel(app: Application) : AndroidViewModel(app) {
             _activeContact.value = contact
             pendingPublicKeyBase64 = null
             _hasPendingQR.value  = false
+
+            // Synchronisiere mit Tastatur
+            KeyboardSyncHelper.saveSessionKey(ctx, contact.id, sessionKey)
+            KeyboardSyncHelper.setActiveContact(ctx, contact.id)
+
             _status.value = UiStatus("✅", "\"${contact.name}\" hinzugefügt & aktiv")
         }.onFailure {
             _status.value = UiStatus("❌", "Ungültiger QR-Code: ${it.message}", isError = true)
@@ -101,6 +116,7 @@ class E2EEViewModel(app: Application) : AndroidViewModel(app) {
     /** Aktiven Kontakt wechseln */
     fun selectContact(contact: Contact) {
         _activeContact.value = contact
+        KeyboardSyncHelper.setActiveContact(ctx, contact.id)
         _status.value = UiStatus("✅", "Kontakt \"${contact.name}\" aktiv")
     }
 
@@ -118,6 +134,11 @@ class E2EEViewModel(app: Application) : AndroidViewModel(app) {
             ContactRepository.saveContact(ctx, contact, _contacts.value)
             _contacts.value += contact
             _activeContact.value = contact
+
+            // Synchronisiere mit Tastatur
+            KeyboardSyncHelper.saveSessionKey(ctx, contact.id, sessionKey)
+            KeyboardSyncHelper.setActiveContact(ctx, contact.id)
+
             _status.value = UiStatus("✅", "\"${contact.name}\" hinzugefügt & aktiv")
         }.onFailure {
             _status.value = UiStatus("❌", "Ungültiger Public Key: ${it.message}", isError = true)
@@ -145,11 +166,14 @@ class E2EEViewModel(app: Application) : AndroidViewModel(app) {
     /** Kontakt löschen */
     fun deleteContact(contactId: String) {
         ContactRepository.deleteContact(ctx, contactId, _contacts.value)
+        KeyboardSyncHelper.removeSessionKey(ctx, contactId)
+
         val updated = _contacts.value.filter { it.id != contactId }
         _contacts.value = updated
         if (_activeContact.value?.id == contactId) {
             _activeContact.value = updated.firstOrNull()
             if (_activeContact.value != null) {
+                KeyboardSyncHelper.setActiveContact(ctx, _activeContact.value!!.id)
                 _status.value = UiStatus("✅", "Kontakt \"${_activeContact.value!!.name}\" aktiv")
             } else {
                 _status.value = UiStatus("⚠️", "Kein aktiver Kontakt - bitte QR scannen")

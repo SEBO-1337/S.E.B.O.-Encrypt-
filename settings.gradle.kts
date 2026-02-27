@@ -24,3 +24,4 @@ dependencyResolutionManagement {
 
 rootProject.name = "S.E.B.O. Encrypt"
 include(":app")
+include(":sebo-eboard")

@@ -38,6 +38,8 @@ android {
 }
 
 dependencies {
+    implementation(project(":sebo-eboard"))
+
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.lifecycle.viewmodel.compose)

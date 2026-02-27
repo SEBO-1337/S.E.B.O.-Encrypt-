@@ -3,7 +3,6 @@ package com.sebo.seboencrypt.ui.screens
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -225,7 +224,7 @@ fun KeyTab(
     }
 
     // ── Haupt-Layout ─────────────────────────────────────────────────────────
-    Column(modifier = Modifier.fillMaxSize()) {
+    Column(modifier = Modifier.fillMaxWidth()) {
         PrimaryTabRow(selectedTabIndex = selectedSubTab.intValue) {
             Tab(
                 selected = selectedSubTab.intValue == 0,
