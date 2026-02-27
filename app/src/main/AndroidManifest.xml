@@ -36,6 +36,17 @@
             android:stateNotNeeded="true"
             android:theme="@style/Theme.SEBOEncrypt"
             android:windowSoftInputMode="stateAlwaysHidden" />
+        <!-- Text Processing: Entschlüsseln-Option im Textauswahlmenü -->
+        <activity
+            android:name=".TextProcessingActivity"
+            android:exported="true"
+            android:label="Entschlüsseln">
+            <intent-filter>
+                <action android:name="android.intent.action.PROCESS_TEXT" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:mimeType="text/plain" />
+            </intent-filter>
+        </activity>
     </application>
 
 </manifest>
