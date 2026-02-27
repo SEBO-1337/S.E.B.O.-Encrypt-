@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="horizontal"
@@ -13,10 +14,12 @@
         android:id="@+id/contact_icon"
         android:layout_width="40dp"
         android:layout_height="40dp"
-        android:text="👤"
-        android:textSize="24sp"
+        android:layout_marginEnd="12dp"
         android:gravity="center"
-        android:layout_marginEnd="12dp" />
+        android:text="@string/item_contact_icon"
+        android:textColor="#0091EA"
+        android:textSize="24sp"
+        tools:ignore="TextSizeCheck" />
 
     <LinearLayout
         android:layout_width="0dp"
@@ -28,7 +31,7 @@
             android:id="@+id/contact_name"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Kontaktname"
+            android:text="@string/item_contact_name"
             android:textSize="16sp"
             android:textStyle="bold" />
 
@@ -36,16 +39,16 @@
             android:id="@+id/contact_status"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="SessionKey verfügbar"
-            android:textSize="12sp"
-            android:textColor="#888888" />
+            android:text="@string/item_contact_sessionKey"
+            android:textColor="#546E7A"
+            android:textSize="12sp" />
     </LinearLayout>
 
     <TextView
         android:id="@+id/active_indicator"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="✓"
+        android:text="@string/item_contact_check"
         android:textSize="24sp"
         android:textColor="#4CAF50"
         android:visibility="gone"

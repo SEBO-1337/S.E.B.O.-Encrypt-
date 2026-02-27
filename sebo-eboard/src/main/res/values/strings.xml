@@ -3,5 +3,15 @@
     <string name="keyboard_name">S.E.B.O. E-Board</string>
     <string name="app_name">S.E.B.O. E-Board</string>
     <string name="keyboard_description">Sichere Tastatur mit Verschlüsselung</string>
+    <string name="contact_dialog_no_contact_found">Keine Kontakte gefunden.\nBitte öffne die S.E.B.O. Encrypt App und füge Kontakte hinzu.</string>
+    <string name="dialog_contact_x">✕</string>
+    <string name="dialog_contact_chose_contact">Kontakt für Ver-/Entschlüsselung wählen</string>
+    <string name="item_contact_name">Kontaktname</string>
+    <string name="item_contact_sessionKey">SessionKey verfügbar</string>
+    <string name="item_contact_check">✓</string>
+    <string name="item_contact_icon">👤</string>
+    <string name="keyboard_view_no_contact">Kein Kontakt</string>
+    <string name="keyboard_view_decrypt">📋 Entschlüsseln</string>
+    <string name="keyboard_view_btn_select_contact">👤 Kontakt</string>
 </resources>
 

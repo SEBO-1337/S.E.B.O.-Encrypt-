@@ -29,6 +29,7 @@ Die App nutzt ein **ECDH-Schlüsselaustausch-Protokoll**:
 | Manuell hinzufügen | Kontakt auch per Base64-Public-Key manuell eintragen |
 | Kontaktverwaltung | Kontakte umbenennen, löschen, aktiven Kontakt wechseln |
 | Share-Intent | Verschlüsselte Texte direkt aus WhatsApp o. ä. in die App teilen → wird automatisch in den Entschlüsseln-Tab geladen |
+| Text Processing Intent | Markieren Sie Text in jeder App und wählen Sie "Entschlüsseln" aus dem Kontextmenü (Android 6.0+) |
 | Zwischenablage | Beim Öffnen der App wird die Zwischenablage automatisch auf verschlüsselten Text geprüft |
 | Einstellungen | Anpassung von Design, Tastatur-Layout und Feedback-Einstellungen |
 
@@ -38,23 +39,53 @@ Die App nutzt ein **ECDH-Schlüsselaustausch-Protokoll**:
 |---|---|
 | 🔒 Verschlüsseln | Tippen Sie Text in **jeder App** und verschlüsseln Sie ihn direkt mit der 🔒-Taste |
 | 🔓 Entschlüsseln | Empfangene verschlüsselte Nachrichten direkt in der App entschlüsseln mit der 🔓-Taste |
-| QWERTZ-Layout | Deutsches Tastaturlayout mit Shift/Caps Lock |
+| 📋 Aus Zwischenablage entschlüsseln | Schnelle Entschlüsselung von kopiertem Text – perfekt für WhatsApp-Nachrichten |
+| QWERTY-Layout | Deutsches Tastaturlayout mit Shift/Caps Lock |
+| Text-Auswahl | Markieren Sie Text und die Löschen-Taste entfernt den markierten Text |
 | Systemweit | Funktioniert in WhatsApp, Telegram, Signal, SMS, E-Mail, Notizen – überall! |
 | Auto-Sync | SessionKeys werden automatisch zwischen App und Tastatur synchronisiert |
 | Kein Tippen nötig | Verschlüsseln Sie Nachrichten ohne die App zu öffnen |
 
-**Anwendungsbeispiel:**
+**Anwendungsbeispiel für Verschlüsselung:**
 1. Öffnen Sie WhatsApp
 2. Wählen Sie S.E.B.O. E-Board als Tastatur
 3. Tippen Sie Ihre Nachricht
 4. Drücken Sie 🔒 → Text wird verschlüsselt
 5. Senden Sie die Nachricht wie gewohnt
 
+**Anwendungsbeispiel für Entschlüsselung (Clipboard):**
+1. Kopieren Sie eine verschlüsselte Nachricht aus WhatsApp
+2. Öffnen Sie eine beliebige App mit Textfeld
+3. Aktivieren Sie S.E.B.O. E-Board als Tastatur
+4. Drücken Sie 📋 "Entschlüsseln" Button
+5. Der entschlüsselte Text wird direkt eingefügt
+
+**Anwendungsbeispiel für Textauswahl-Menü:**
+1. Markieren Sie einen verschlüsselten Text in einer beliebigen App
+2. Das Kontextmenü erscheint
+3. Tippen Sie auf "Entschlüsseln"
+4. Der Text wird in der S.E.B.O. Encrypt App entschlüsselt
+
 Der Empfänger kann die Nachricht entweder in der App oder direkt mit der Tastatur entschlüsseln!
 
 ---
 
-## Technologie-Stack
+## Intent-Integrationen
+
+### Text Processing Intent
+Die App registriert sich als Handler für **PROCESS_TEXT** Intent. Dies bedeutet:
+- Markieren Sie Text in **jeder App** (Browser, Mail, Nachrichten, etc.)
+- Das Kontextmenü zeigt einen **"Entschlüsseln"** Punkt
+- Tippen Sie darauf → Text wird in S.E.B.O. Encrypt entschlüsselt
+- Funktioniert auf Android 6.0+
+
+### Share Intent
+Verschlüsselte Texte können direkt aus anderen Apps geteilt werden:
+- **ACTION_SEND** für Text
+- Text wird automatisch im Entschlüsseln-Tab geladen
+- Perfekt für WhatsApp, Telegram und andere Messenger
+
+---
 
 | Komponente | Technologie |
 |---|---|
@@ -79,6 +110,7 @@ SEBOEncrypt/
 │   └── src/main/java/com/sebo/seboencrypt/
 │       ├── MainActivity.kt                  # Entry Point, Tab-Navigation, QR-Scanner-Start
 │       ├── PortraitCaptureActivity.kt       # Scanner immer im Hochformat
+│       ├── TextProcessingActivity.kt        # PROCESS_TEXT Intent Handler – Textauswahl-Menü
 │       ├── engine/
 │       │   └── CryptoEngine.kt              # AES-256-GCM Verschlüsselung & Entschlüsselung
 │       ├── helper/

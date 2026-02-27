@@ -68,7 +68,7 @@ class CustomKeyboardService : InputMethodService(), KeyboardView.OnKeyboardActio
         btnDecryptClipboard = rootView.findViewById(R.id.btn_decrypt_clipboard)
 
         // Initialize all keyboards
-        qwertyKeyboard = Keyboard(this, R.xml.qwerty)
+        qwertyKeyboard = Keyboard(this, R.xml.qwertz)
         numbersKeyboard = Keyboard(this, R.xml.numbers)
         symbolsKeyboard = Keyboard(this, R.xml.symbols)
 
@@ -241,7 +241,7 @@ class CustomKeyboardService : InputMethodService(), KeyboardView.OnKeyboardActio
         // Setze Hintergrund für außerhalb-Klick-Erkennung
         popupWindow.setBackgroundDrawable(ResourcesCompat.getDrawable(resources, android.R.drawable.dialog_holo_light_frame, null))
         popupWindow.isOutsideTouchable = true
-        popupWindow.isFocusable = true
+        popupWindow.isFocusable = false
         popupWindow.elevation = 10f
 
         val adapter = ContactAdapter(contacts, activeContactId) { contact ->

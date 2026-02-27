@@ -20,7 +20,6 @@ object SettingsManager {
 
     // Theme values
     const val THEME_DARK = "dark"
-    const val THEME_LIGHT = "light"
     const val THEME_BLUE = "blue"
     const val THEME_GREEN = "green"
 

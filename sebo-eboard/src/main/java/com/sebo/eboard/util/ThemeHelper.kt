@@ -69,7 +69,7 @@ object ThemeHelper {
         val normalGradient = GradientDrawable().apply {
             shape = GradientDrawable.RECTANGLE
             orientation = GradientDrawable.Orientation.TOP_BOTTOM
-            setColors(intArrayOf(normalLight, themeColors.keyNormal, normalDark))
+            colors = intArrayOf(normalLight, themeColors.keyNormal, normalDark)
             cornerRadius = 14f
             setStroke(2, themeColors.keyBorder)
         }
@@ -78,7 +78,7 @@ object ThemeHelper {
         val pressedGradient = GradientDrawable().apply {
             shape = GradientDrawable.RECTANGLE
             orientation = GradientDrawable.Orientation.TOP_BOTTOM
-            setColors(intArrayOf(pressedLight, themeColors.keyPressed, pressedDark))
+            colors = intArrayOf(pressedLight, themeColors.keyPressed, pressedDark)
             cornerRadius = 14f
             setStroke(2, themeColors.keyBorder)
         }
