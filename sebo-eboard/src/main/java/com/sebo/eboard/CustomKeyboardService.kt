@@ -3,6 +3,9 @@ package com.sebo.eboard
 import android.inputmethodservice.InputMethodService
 import android.inputmethodservice.Keyboard
 import android.inputmethodservice.KeyboardView
+import android.media.AudioManager
+import android.os.VibrationEffect
+import android.os.Vibrator
 import android.view.Gravity
 import android.view.View
 import android.view.ViewGroup
@@ -14,7 +17,9 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.sebo.eboard.crypto.CryptoEngine
 import com.sebo.eboard.manager.ContactManager
+import com.sebo.eboard.manager.SettingsManager
 import com.sebo.eboard.ui.ContactAdapter
+import com.sebo.eboard.util.ThemeHelper
 
 /**
  * S.E.B.O. E-Board - Custom Keyboard Service
@@ -24,6 +29,9 @@ import com.sebo.eboard.ui.ContactAdapter
 class CustomKeyboardService : InputMethodService(), KeyboardView.OnKeyboardActionListener {
 
     private lateinit var keyboardView: KeyboardView
+    private lateinit var qwertyKeyboard: Keyboard
+    private lateinit var numbersKeyboard: Keyboard
+    private lateinit var symbolsKeyboard: Keyboard
     private lateinit var keyboard: Keyboard
     private lateinit var activeContactLabel: TextView
     private lateinit var btnSelectContact: Button
@@ -31,9 +39,19 @@ class CustomKeyboardService : InputMethodService(), KeyboardView.OnKeyboardActio
     private var isShifted = false
     private var isCapsLock = false
 
+    // Keyboard mode tracking
+    private enum class KeyboardMode {
+        QWERTY, NUMBERS, SYMBOLS
+    }
+    private var currentMode = KeyboardMode.QWERTY
+
     // Aktueller Session-Key für Ver-/Entschlüsselung
     private var currentSessionKey: ByteArray? = null
     private var activeContactName: String? = null
+
+    // Feedback services
+    private var vibrator: Vibrator? = null
+    private var audioManager: AudioManager? = null
 
     override fun onCreateInputView(): View {
         val rootView = layoutInflater.inflate(R.layout.keyboard_view, null)
@@ -42,10 +60,25 @@ class CustomKeyboardService : InputMethodService(), KeyboardView.OnKeyboardActio
         activeContactLabel = rootView.findViewById(R.id.active_contact_label)
         btnSelectContact = rootView.findViewById(R.id.btn_select_contact)
 
-        keyboard = Keyboard(this, R.xml.qwerty)
+        // Initialize all keyboard layouts
+        qwertyKeyboard = Keyboard(this, R.xml.qwerty)
+        numbersKeyboard = Keyboard(this, R.xml.numbers)
+        symbolsKeyboard = Keyboard(this, R.xml.symbols)
+
+        // Start with QWERTY keyboard
+        keyboard = qwertyKeyboard
+        currentMode = KeyboardMode.QWERTY
+
         keyboardView.keyboard = keyboard
         keyboardView.setOnKeyboardActionListener(this)
         keyboardView.isPreviewEnabled = false
+
+        // Initialize feedback services
+        vibrator = getSystemService(VIBRATOR_SERVICE) as? Vibrator
+        audioManager = getSystemService(AUDIO_SERVICE) as? AudioManager
+
+        // Apply settings (must be called after view initialization)
+        applySettings()
 
         // Lade aktiven Session-Key
         loadActiveSessionKey()
@@ -56,6 +89,60 @@ class CustomKeyboardService : InputMethodService(), KeyboardView.OnKeyboardActio
         }
 
         return rootView
+    }
+
+    override fun onStartInputView(info: EditorInfo?, restarting: Boolean) {
+        super.onStartInputView(info, restarting)
+        // Reload settings when keyboard is shown
+        applySettings()
+        loadActiveSessionKey()
+
+        // Reset to QWERTY keyboard when opening
+        if (currentMode != KeyboardMode.QWERTY) {
+            switchToQwerty()
+        }
+    }
+
+    /**
+     * Wendet die Einstellungen auf die Tastatur an
+     */
+    private fun applySettings() {
+        // Apply theme colors
+        val themeColors = ThemeHelper.getThemeColors(this)
+
+        // Get text size setting
+        val textSize = SettingsManager.getKeyTextSize(this).toFloat()
+
+        // Set keyboard view colors and properties
+        if (::keyboardView.isInitialized) {
+            keyboardView.setBackgroundColor(themeColors.backgroundColor)
+
+            // Note: KeyboardView doesn't directly support changing key text size at runtime
+            // The text size is defined in the XML layout. For full customization,
+            // we would need to create a custom KeyboardView or use reflection.
+            // For now, we update the container background colors.
+
+            // Update the root view background color
+            val rootView = keyboardView.parent as? ViewGroup
+            rootView?.setBackgroundColor(themeColors.backgroundColor)
+
+            // Find the top-level LinearLayout
+            rootView?.parent?.let { grandParent ->
+                if (grandParent is ViewGroup) {
+                    grandParent.setBackgroundColor(themeColors.backgroundColor)
+                }
+            }
+
+            // Update button and label colors
+            if (::btnSelectContact.isInitialized) {
+                btnSelectContact.setBackgroundColor(themeColors.keyNormal)
+                btnSelectContact.setTextColor(themeColors.keyText)
+            }
+
+            if (::activeContactLabel.isInitialized) {
+                activeContactLabel.setTextColor(themeColors.keyText)
+            }
+        }
     }
 
     /**
@@ -181,6 +268,15 @@ class CustomKeyboardService : InputMethodService(), KeyboardView.OnKeyboardActio
             KEYCODE_DECRYPT -> {
                 decryptText()
             }
+            KEYCODE_MODE_NUMBERS -> {
+                switchToNumbers()
+            }
+            KEYCODE_MODE_SYMBOLS -> {
+                switchToSymbols()
+            }
+            KEYCODE_MODE_ABC -> {
+                switchToQwerty()
+            }
             else -> {
                 var char = primaryCode.toChar()
 
@@ -214,6 +310,45 @@ class CustomKeyboardService : InputMethodService(), KeyboardView.OnKeyboardActio
 
         keyboard.isShifted = isShifted
         keyboardView.invalidateAllKeys()
+    }
+
+    /**
+     * Wechselt zur Zahlen-Tastatur
+     */
+    private fun switchToNumbers() {
+        currentMode = KeyboardMode.NUMBERS
+        keyboard = numbersKeyboard
+        keyboardView.keyboard = keyboard
+        keyboardView.invalidateAllKeys()
+        // Reset shift state
+        isShifted = false
+        isCapsLock = false
+    }
+
+    /**
+     * Wechselt zur Sonderzeichen-Tastatur
+     */
+    private fun switchToSymbols() {
+        currentMode = KeyboardMode.SYMBOLS
+        keyboard = symbolsKeyboard
+        keyboardView.keyboard = keyboard
+        keyboardView.invalidateAllKeys()
+        // Reset shift state
+        isShifted = false
+        isCapsLock = false
+    }
+
+    /**
+     * Wechselt zur QWERTY-Buchstaben-Tastatur
+     */
+    private fun switchToQwerty() {
+        currentMode = KeyboardMode.QWERTY
+        keyboard = qwertyKeyboard
+        keyboardView.keyboard = keyboard
+        keyboardView.invalidateAllKeys()
+        // Reset shift state
+        isShifted = false
+        isCapsLock = false
     }
 
     private fun encryptText() {
@@ -295,7 +430,36 @@ class CustomKeyboardService : InputMethodService(), KeyboardView.OnKeyboardActio
     }
 
     override fun onPress(primaryCode: Int) {
-        // Optional: Feedback bei Tastendruck (Vibration, Sound)
+        // Haptic Feedback
+        if (SettingsManager.isHapticFeedbackEnabled(this)) {
+            vibrator?.let { vib ->
+                val strength = SettingsManager.getHapticStrength(this)
+                val duration = when (strength) {
+                    SettingsManager.HAPTIC_LIGHT -> 10L
+                    SettingsManager.HAPTIC_MEDIUM -> 25L
+                    SettingsManager.HAPTIC_STRONG -> 50L
+                    else -> 25L
+                }
+
+                if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+                    val amplitude = when (strength) {
+                        SettingsManager.HAPTIC_LIGHT -> 50
+                        SettingsManager.HAPTIC_MEDIUM -> 128
+                        SettingsManager.HAPTIC_STRONG -> 255
+                        else -> 128
+                    }
+                    vib.vibrate(VibrationEffect.createOneShot(duration, amplitude))
+                } else {
+                    @Suppress("DEPRECATION")
+                    vib.vibrate(duration)
+                }
+            }
+        }
+
+        // Sound Feedback
+        if (SettingsManager.isSoundFeedbackEnabled(this)) {
+            audioManager?.playSoundEffect(AudioManager.FX_KEYPRESS_STANDARD, 0.5f)
+        }
     }
 
     override fun onRelease(primaryCode: Int) {
@@ -328,6 +492,9 @@ class CustomKeyboardService : InputMethodService(), KeyboardView.OnKeyboardActio
         private const val KEYCODE_SPACE = 32
         private const val KEYCODE_ENCRYPT = -100
         private const val KEYCODE_DECRYPT = -101
+        private const val KEYCODE_MODE_SYMBOLS = -102      // =\# Taste
+        private const val KEYCODE_MODE_ABC = -103          // ABC Taste
+        private const val KEYCODE_MODE_NUMBERS = -104      // 123 Taste
     }
 }
 

@@ -14,6 +14,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.LockOpen
 import androidx.compose.material.icons.filled.QrCode
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
@@ -27,6 +28,7 @@ import com.journeyapps.barcodescanner.ScanOptions
 import com.sebo.seboencrypt.ui.screens.DecryptTab
 import com.sebo.seboencrypt.ui.screens.EncryptTab
 import com.sebo.seboencrypt.ui.screens.KeyTab
+import com.sebo.seboencrypt.ui.screens.SettingsTab
 import com.sebo.seboencrypt.ui.components.StatusBanner
 import com.sebo.seboencrypt.ui.theme.SEBOEncryptTheme
 import com.sebo.seboencrypt.viewmodel.E2EEViewModel
@@ -118,7 +120,8 @@ fun MainScreen(vm: E2EEViewModel, onScanQR: () -> Unit) {
     val tabs = listOf(
         Triple("Verschlüsseln", Icons.Filled.Lock, 0),
         Triple("Entschlüsseln", Icons.Filled.LockOpen, 1),
-        Triple("Schlüssel", Icons.Filled.QrCode, 2)
+        Triple("Schlüssel", Icons.Filled.QrCode, 2),
+        Triple("Einstellungen", Icons.Filled.Settings, 3)
     )
     var selectedTab by remember { mutableIntStateOf(0) }
 
@@ -188,6 +191,7 @@ fun MainScreen(vm: E2EEViewModel, onScanQR: () -> Unit) {
                     0 -> EncryptTab(vm)
                     1 -> DecryptTab(vm)
                     2 -> KeyTab(vm, onScanQR = onScanQR)
+                    3 -> SettingsTab()
                 }
             }
 

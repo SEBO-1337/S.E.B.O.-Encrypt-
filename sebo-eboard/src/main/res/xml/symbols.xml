@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Keyboard xmlns:android="http://schemas.android.com/apk/res/android"
+    android:keyWidth="10%p"
+    android:keyHeight="60dp"
+    android:horizontalGap="0dp"
+    android:verticalGap="2dp">
+
+    <!-- Erste Reihe: ~ ` | · √ π Ω ÷ × ¶ -->
+    <Row>
+        <Key android:codes="126" android:keyLabel="~" android:keyWidth="10%p" android:keyEdgeFlags="left" />
+        <Key android:codes="96" android:keyLabel="`" android:keyWidth="10%p" />
+        <Key android:codes="124" android:keyLabel="|" android:keyWidth="10%p" />
+        <Key android:codes="183" android:keyLabel="·" android:keyWidth="10%p" />
+        <Key android:codes="8730" android:keyLabel="√" android:keyWidth="10%p" />
+        <Key android:codes="960" android:keyLabel="π" android:keyWidth="10%p" />
+        <Key android:codes="937" android:keyLabel="Ω" android:keyWidth="10%p" />
+        <Key android:codes="247" android:keyLabel="÷" android:keyWidth="10%p" />
+        <Key android:codes="215" android:keyLabel="×" android:keyWidth="10%p" />
+        <Key android:codes="182" android:keyLabel="¶" android:keyWidth="10%p" android:keyEdgeFlags="right" />
+    </Row>
+
+    <!-- Zweite Reihe: [ ] { } < > = \ ^ ° -->
+    <Row>
+        <Key android:codes="91" android:keyLabel="[" android:keyWidth="10%p" android:keyEdgeFlags="left" />
+        <Key android:codes="93" android:keyLabel="]" android:keyWidth="10%p" />
+        <Key android:codes="123" android:keyLabel="{" android:keyWidth="10%p" />
+        <Key android:codes="125" android:keyLabel="}" android:keyWidth="10%p" />
+        <Key android:codes="60" android:keyLabel="&lt;" android:keyWidth="10%p" />
+        <Key android:codes="62" android:keyLabel="&gt;" android:keyWidth="10%p" />
+        <Key android:codes="61" android:keyLabel="=" android:keyWidth="10%p" />
+        <Key android:codes="92" android:keyLabel="\\" android:keyWidth="10%p" />
+        <Key android:codes="94" android:keyLabel="^" android:keyWidth="10%p" />
+        <Key android:codes="176" android:keyLabel="°" android:keyWidth="10%p" android:keyEdgeFlags="right" />
+    </Row>
+
+    <!-- Dritte Reihe: Numbers-Taste, € £ ¥ ¢ § ™ © ® Backspace -->
+    <Row>
+        <Key android:codes="-104" android:keyLabel="123" android:keyWidth="15%p" android:keyEdgeFlags="left" />
+        <Key android:codes="8364" android:keyLabel="€" android:keyWidth="8.75%p" />
+        <Key android:codes="163" android:keyLabel="£" android:keyWidth="8.75%p" />
+        <Key android:codes="165" android:keyLabel="¥" android:keyWidth="8.75%p" />
+        <Key android:codes="162" android:keyLabel="¢" android:keyWidth="8.75%p" />
+        <Key android:codes="167" android:keyLabel="§" android:keyWidth="8.75%p" />
+        <Key android:codes="8482" android:keyLabel="™" android:keyWidth="8.75%p" />
+        <Key android:codes="169" android:keyLabel="©" android:keyWidth="8.75%p" />
+        <Key android:codes="174" android:keyLabel="®" android:keyWidth="8.75%p" />
+        <Key android:codes="-5" android:keyLabel="⌫" android:keyWidth="15%p" android:isRepeatable="true" android:keyEdgeFlags="right" />
+    </Row>
+
+    <!-- Vierte Reihe: ABC, Verschlüsseln, Leerzeichen, Entschlüsseln, Enter -->
+    <Row android:rowEdgeFlags="bottom">
+        <Key android:codes="-103" android:keyLabel="ABC" android:keyWidth="15%p" android:keyEdgeFlags="left" />
+        <Key android:codes="-100" android:keyLabel="🔒" android:keyWidth="17%p" />
+        <Key android:codes="32" android:keyLabel="Leer" android:keyWidth="36%p" android:isRepeatable="false" />
+        <Key android:codes="-101" android:keyLabel="🔓" android:keyWidth="17%p" />
+        <Key android:codes="-4" android:keyLabel="↵" android:keyWidth="15%p" android:keyEdgeFlags="right" />
+    </Row>
+</Keyboard>
+
