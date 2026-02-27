@@ -271,7 +271,7 @@ class CustomKeyboardService : InputMethodService(), KeyboardView.OnKeyboardActio
 
         when (primaryCode) {
             Keyboard.KEYCODE_DELETE -> {
-                ic.deleteSurroundingText(1, 0)
+                handleDelete(ic)
                 resetShiftIfNeeded()
             }
             Keyboard.KEYCODE_SHIFT -> {
@@ -528,6 +528,24 @@ class CustomKeyboardService : InputMethodService(), KeyboardView.OnKeyboardActio
             ic.commitText(decrypted, 1)
         } catch (e: Exception) {
             ic.commitText("[❌ Entschlüsselung fehlgeschlagen - falscher Kontakt?]", 1)
+        }
+    }
+
+    /**
+     * Löscht markierten Text oder ein Zeichen vor dem Cursor
+     */
+    private fun handleDelete(ic: android.view.inputmethod.InputConnection) {
+        // Versuche, den markierten Text zu löschen
+        // Dies funktioniert bei Android 6.0+ mit der Cursor-Position API
+        try {
+            // Setze eine Löschoperation für den markierten Text
+            ic.commitText("", 1)
+
+            // Falls das nicht funktioniert, lösche einfach ein Zeichen
+            ic.deleteSurroundingText(1, 0)
+        } catch (e: Exception) {
+            // Fallback: Lösche einfach ein Zeichen
+            ic.deleteSurroundingText(1, 0)
         }
     }
 
