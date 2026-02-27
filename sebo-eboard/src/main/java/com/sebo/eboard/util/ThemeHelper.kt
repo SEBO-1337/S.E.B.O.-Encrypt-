@@ -1,9 +1,8 @@
 package com.sebo.eboard.util
 
 import android.content.Context
-import android.graphics.drawable.ShapeDrawable
+import android.graphics.drawable.GradientDrawable
 import android.graphics.drawable.StateListDrawable
-import android.graphics.drawable.shapes.RoundRectShape
 import androidx.core.content.ContextCompat
 import com.sebo.eboard.R
 import com.sebo.eboard.manager.SettingsManager
@@ -54,41 +53,70 @@ object ThemeHelper {
     }
 
     /**
-     * Erstellt ein dynamisches StateListDrawable für Keys basierend auf den Theme-Farben
+     * Erstellt ein futuristisches StateListDrawable für Keys mit Gradient und Schatten
      */
     fun createKeyDrawable(context: Context): StateListDrawable {
-        val colors = getThemeColors(context)
-        
-        // Erstelle Drawable für gedrückten Zustand
-        val pressedShape = RoundRectShape(
-            floatArrayOf(6f, 6f, 6f, 6f, 6f, 6f, 6f, 6f),
-            null,
-            null
-        )
-        val pressedDrawable = ShapeDrawable(pressedShape).apply {
-            paint.color = colors.keyPressed
-            paint.strokeWidth = 2f
-            paint.style = android.graphics.Paint.Style.FILL_AND_STROKE
+        val themeColors = getThemeColors(context)
+
+        // Berechne heller und dunkler Varianten für Gradient
+        val normalLight = lightenColor(themeColors.keyNormal, 1.3f)
+        val normalDark = darkenColor(themeColors.keyNormal, 0.7f)
+
+        val pressedLight = lightenColor(themeColors.keyPressed, 1.2f)
+        val pressedDark = darkenColor(themeColors.keyPressed, 0.8f)
+
+        // Normaler Zustand - mit Gradient und Schatten
+        val normalGradient = GradientDrawable().apply {
+            shape = GradientDrawable.RECTANGLE
+            orientation = GradientDrawable.Orientation.TOP_BOTTOM
+            setColors(intArrayOf(normalLight, themeColors.keyNormal, normalDark))
+            cornerRadius = 14f
+            setStroke(2, themeColors.keyBorder)
         }
 
-        // Erstelle Drawable für normalen Zustand
-        val normalShape = RoundRectShape(
-            floatArrayOf(6f, 6f, 6f, 6f, 6f, 6f, 6f, 6f),
-            null,
-            null
-        )
-        val normalDrawable = ShapeDrawable(normalShape).apply {
-            paint.color = colors.keyNormal
-            paint.strokeWidth = 2f
-            paint.style = android.graphics.Paint.Style.FILL_AND_STROKE
+        // Gedrückter Zustand - dunklerer Gradient
+        val pressedGradient = GradientDrawable().apply {
+            shape = GradientDrawable.RECTANGLE
+            orientation = GradientDrawable.Orientation.TOP_BOTTOM
+            setColors(intArrayOf(pressedLight, themeColors.keyPressed, pressedDark))
+            cornerRadius = 14f
+            setStroke(2, themeColors.keyBorder)
         }
 
         // Erstelle StateListDrawable
         val stateListDrawable = StateListDrawable()
-        stateListDrawable.addState(intArrayOf(android.R.attr.state_pressed), pressedDrawable)
-        stateListDrawable.addState(intArrayOf(), normalDrawable)
+        stateListDrawable.addState(intArrayOf(android.R.attr.state_pressed), pressedGradient)
+        stateListDrawable.addState(intArrayOf(), normalGradient)
 
         return stateListDrawable
+    }
+
+    /**
+     * Hellt eine Farbe auf
+     */
+    private fun lightenColor(color: Int, factor: Float): Int {
+        val r = ((color shr 16) and 0xFF) * factor
+        val g = ((color shr 8) and 0xFF) * factor
+        val b = (color and 0xFF) * factor
+
+        return (0xFF shl 24) or
+            (r.toInt().coerceIn(0, 255) shl 16) or
+            (g.toInt().coerceIn(0, 255) shl 8) or
+            b.toInt().coerceIn(0, 255)
+    }
+
+    /**
+     * Verdunkelt eine Farbe
+     */
+    private fun darkenColor(color: Int, factor: Float): Int {
+        val r = ((color shr 16) and 0xFF) * factor
+        val g = ((color shr 8) and 0xFF) * factor
+        val b = (color and 0xFF) * factor
+
+        return (0xFF shl 24) or
+            (r.toInt().coerceIn(0, 255) shl 16) or
+            (g.toInt().coerceIn(0, 255) shl 8) or
+            b.toInt().coerceIn(0, 255)
     }
 }
 

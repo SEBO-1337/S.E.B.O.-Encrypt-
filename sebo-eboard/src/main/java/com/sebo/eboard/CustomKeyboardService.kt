@@ -119,7 +119,7 @@ class CustomKeyboardService : InputMethodService(), KeyboardView.OnKeyboardActio
         if (::keyboardView.isInitialized) {
             keyboardView.setBackgroundColor(themeColors.backgroundColor)
 
-            // Setze das dynamische Key-Drawable basierend auf dem Theme durch Reflection
+            // Setze das futuristische Key-Drawable basierend auf dem Theme durch Reflection
             try {
                 val keyDrawable = ThemeHelper.createKeyDrawable(this)
                 val field = keyboardView.javaClass.getDeclaredField("mKeyBackground")
