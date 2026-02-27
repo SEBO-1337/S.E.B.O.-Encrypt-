@@ -10,9 +10,9 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.VolumeUp
 import androidx.compose.material.icons.filled.Palette
 import androidx.compose.material.icons.filled.PhoneAndroid
-import androidx.compose.material.icons.filled.VolumeUp
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
@@ -22,6 +22,7 @@ import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -39,7 +40,7 @@ fun SettingsTab() {
         mutableStateOf(SettingsManager.isHapticFeedbackEnabled(context))
     }
     var hapticStrength by remember {
-        mutableStateOf(SettingsManager.getHapticStrength(context))
+        mutableIntStateOf(SettingsManager.getHapticStrength(context))
     }
     var soundEnabled by remember {
         mutableStateOf(SettingsManager.isSoundFeedbackEnabled(context))
@@ -217,7 +218,7 @@ fun SettingsTab() {
                     modifier = Modifier.padding(bottom = 16.dp)
                 ) {
                     Icon(
-                        Icons.Filled.VolumeUp,
+                        Icons.AutoMirrored.Filled.VolumeUp,
                         contentDescription = null,
                         tint = MaterialTheme.colorScheme.primary
                     )
