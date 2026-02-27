@@ -30,6 +30,7 @@ Die App nutzt ein **ECDH-Schlüsselaustausch-Protokoll**:
 | Kontaktverwaltung | Kontakte umbenennen, löschen, aktiven Kontakt wechseln |
 | Share-Intent | Verschlüsselte Texte direkt aus WhatsApp o. ä. in die App teilen → wird automatisch in den Entschlüsseln-Tab geladen |
 | Zwischenablage | Beim Öffnen der App wird die Zwischenablage automatisch auf verschlüsselten Text geprüft |
+| Einstellungen | Anpassung von Design, Tastatur-Layout und Feedback-Einstellungen |
 
 ### S.E.B.O. E-Board Tastatur
 
@@ -143,26 +144,13 @@ Android zeigt beim Aktivieren einer Custom Keyboard eine Sicherheitswarnung, da 
 
 ### Installation:
 
-1. **Projekt klonen und in Android Studio öffnen**
-   ```bash
-   git clone <repository-url>
-   cd SEBOEncrypt
-   ```
-
-2. **App bauen und installieren**
-   - In Android Studio: Run-Button (▶️) drücken
-   - Oder via Gradle:
-     ```bash
-     ./gradlew installDebug
-     ```
-
-3. **S.E.B.O. E-Board Tastatur aktivieren**
+**S.E.B.O. E-Board Tastatur aktivieren**
    - App öffnen
    - Button "S.E.B.O. E-Board aktivieren" drücken
    - In den Android-Einstellungen "S.E.B.O. E-Board" aktivieren
    - Sicherheitswarnung bestätigen
 
-4. **Tastatur verwenden**
+**Tastatur verwenden**
    - In beliebiger App ein Textfeld antippen
    - Leertaste gedrückt halten oder Tastatur-Symbol (🌐) drücken
    - "S.E.B.O. E-Board" auswählen

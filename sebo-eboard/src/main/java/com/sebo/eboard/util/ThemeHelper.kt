@@ -1,6 +1,9 @@
 package com.sebo.eboard.util
 
 import android.content.Context
+import android.graphics.drawable.ShapeDrawable
+import android.graphics.drawable.StateListDrawable
+import android.graphics.drawable.shapes.RoundRectShape
 import androidx.core.content.ContextCompat
 import com.sebo.eboard.R
 import com.sebo.eboard.manager.SettingsManager
@@ -56,6 +59,44 @@ object ThemeHelper {
                 keyTextSecondary = ContextCompat.getColor(context, R.color.key_text_secondary)
             )
         }
+    }
+
+    /**
+     * Erstellt ein dynamisches StateListDrawable für Keys basierend auf den Theme-Farben
+     */
+    fun createKeyDrawable(context: Context): StateListDrawable {
+        val colors = getThemeColors(context)
+        
+        // Erstelle Drawable für gedrückten Zustand
+        val pressedShape = RoundRectShape(
+            floatArrayOf(6f, 6f, 6f, 6f, 6f, 6f, 6f, 6f),
+            null,
+            null
+        )
+        val pressedDrawable = ShapeDrawable(pressedShape).apply {
+            paint.color = colors.keyPressed
+            paint.strokeWidth = 2f
+            paint.style = android.graphics.Paint.Style.FILL_AND_STROKE
+        }
+
+        // Erstelle Drawable für normalen Zustand
+        val normalShape = RoundRectShape(
+            floatArrayOf(6f, 6f, 6f, 6f, 6f, 6f, 6f, 6f),
+            null,
+            null
+        )
+        val normalDrawable = ShapeDrawable(normalShape).apply {
+            paint.color = colors.keyNormal
+            paint.strokeWidth = 2f
+            paint.style = android.graphics.Paint.Style.FILL_AND_STROKE
+        }
+
+        // Erstelle StateListDrawable
+        val stateListDrawable = StateListDrawable()
+        stateListDrawable.addState(intArrayOf(android.R.attr.state_pressed), pressedDrawable)
+        stateListDrawable.addState(intArrayOf(), normalDrawable)
+
+        return stateListDrawable
     }
 }
 

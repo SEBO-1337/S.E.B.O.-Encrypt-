@@ -13,8 +13,8 @@ import android.view.inputmethod.EditorInfo
 import android.widget.Button
 import android.widget.PopupWindow
 import android.widget.TextView
-import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.core.content.res.ResourcesCompat
+import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.sebo.eboard.crypto.CryptoEngine
 import com.sebo.eboard.manager.ContactManager
@@ -119,10 +119,15 @@ class CustomKeyboardService : InputMethodService(), KeyboardView.OnKeyboardActio
         if (::keyboardView.isInitialized) {
             keyboardView.setBackgroundColor(themeColors.backgroundColor)
 
-            // Note: KeyboardView doesn't directly support changing key text size at runtime
-            // The text size is defined in the XML layout. For full customization,
-            // we would need to create a custom KeyboardView or use reflection.
-            // For now, we update the container background colors.
+            // Setze das dynamische Key-Drawable basierend auf dem Theme durch Reflection
+            try {
+                val keyDrawable = ThemeHelper.createKeyDrawable(this)
+                val field = keyboardView.javaClass.getDeclaredField("mKeyBackground")
+                field.isAccessible = true
+                field.set(keyboardView, keyDrawable)
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
 
             // Update the root view background color
             val rootView = keyboardView.parent as? ViewGroup
@@ -132,6 +137,7 @@ class CustomKeyboardService : InputMethodService(), KeyboardView.OnKeyboardActio
             rootView?.parent?.let { grandParent ->
                 if (grandParent is ViewGroup) {
                     grandParent.setBackgroundColor(themeColors.backgroundColor)
+                    grandParent.invalidate()
                 }
             }
 
@@ -144,6 +150,11 @@ class CustomKeyboardService : InputMethodService(), KeyboardView.OnKeyboardActio
             if (::activeContactLabel.isInitialized) {
                 activeContactLabel.setTextColor(themeColors.keyText)
             }
+
+            // Force keyboard view to redraw
+            keyboardView.invalidateAllKeys()
+            keyboardView.invalidate()
+            rootView?.invalidate()
         }
     }
 
