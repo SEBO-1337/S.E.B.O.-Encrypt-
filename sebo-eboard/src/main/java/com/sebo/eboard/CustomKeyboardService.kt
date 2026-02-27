@@ -1,3 +1,5 @@
+@file:Suppress("DEPRECATION")
+
 package com.sebo.eboard
 
 import android.inputmethodservice.InputMethodService
@@ -29,7 +31,8 @@ import com.sebo.eboard.util.ThemeHelper
  */
 @Suppress(
     "DEPRECATION",
-    "unused"
+    "unused",
+    "DiscouragedPrivateApi"
 )
 class CustomKeyboardService : InputMethodService(), KeyboardView.OnKeyboardActionListener {
 
@@ -59,8 +62,9 @@ class CustomKeyboardService : InputMethodService(), KeyboardView.OnKeyboardActio
     private var vibrator: Vibrator? = null
     private var audioManager: AudioManager? = null
 
+    @Suppress("InflateParams")
     override fun onCreateInputView(): View {
-        val rootView = layoutInflater.inflate(R.layout.keyboard_view, null)
+        val rootView = layoutInflater.inflate(R.layout.keyboard_view, null, false)
 
         keyboardView = rootView.findViewById(R.id.keyboard)
         activeContactLabel = rootView.findViewById(R.id.active_contact_label)
@@ -118,6 +122,8 @@ class CustomKeyboardService : InputMethodService(), KeyboardView.OnKeyboardActio
     /**
      * Wendet die Einstellungen auf die Tastatur an
      */
+    @Suppress("DiscouragedPrivateApi")
+    @android.annotation.SuppressLint("DiscouragedPrivateApi", "PrivateApi")
     private fun applySettings() {
         // Apply theme colors
         val themeColors = ThemeHelper.getThemeColors(this)
@@ -127,6 +133,7 @@ class CustomKeyboardService : InputMethodService(), KeyboardView.OnKeyboardActio
             keyboardView.setBackgroundColor(themeColors.backgroundColor)
 
             // Setze das futuristische Key-Drawable basierend auf dem Theme durch Reflection
+            @Suppress("DiscouragedPrivateApi", "SoonBlockedPrivateApi")
             try {
                 val keyDrawable = ThemeHelper.createKeyDrawable(this)
                 val field = keyboardView.javaClass.getDeclaredField("mKeyBackground")
@@ -212,11 +219,12 @@ class CustomKeyboardService : InputMethodService(), KeyboardView.OnKeyboardActio
     /**
      * Zeigt den Kontakt-Auswahl-Dialog als PopupWindow
      */
+    @Suppress("InflateParams")
     private fun showContactSelectorDialog() {
         val contacts = ContactManager.loadContacts(this)
 
         // Erstelle die Popup-View
-        val popupView = layoutInflater.inflate(R.layout.dialog_contact_selector, null)
+        val popupView = layoutInflater.inflate(R.layout.dialog_contact_selector, null, false)
         val recyclerView = popupView.findViewById<RecyclerView>(R.id.contacts_recycler)
         val noContactsMsg = popupView.findViewById<TextView>(R.id.no_contacts_message)
 
@@ -266,6 +274,7 @@ class CustomKeyboardService : InputMethodService(), KeyboardView.OnKeyboardActio
         popupWindow.showAtLocation(rootView, Gravity.CENTER, 0, 0)
     }
 
+    @Deprecated("Using deprecated KeyboardView API")
     override fun onKey(primaryCode: Int, keyCodes: IntArray?) {
         val ic = currentInputConnection ?: return
 
@@ -382,7 +391,7 @@ class CustomKeyboardService : InputMethodService(), KeyboardView.OnKeyboardActio
     private fun encryptText() {
         val ic = currentInputConnection ?: return
 
-        // Prüfe ob ein Session-Key verfügbar ist
+        // Prüfe, ob ein Session-Key verfügbar ist
         val sessionKey = currentSessionKey
         if (sessionKey == null) {
             ic.commitText("[⚠️ Kein Kontakt aktiv - öffne App]", 1)
@@ -421,7 +430,7 @@ class CustomKeyboardService : InputMethodService(), KeyboardView.OnKeyboardActio
     private fun decryptText() {
         val ic = currentInputConnection ?: return
 
-        // Prüfe ob ein Session-Key verfügbar ist
+        // Prüfe, ob ein Session-Key verfügbar ist
         val sessionKey = currentSessionKey
         if (sessionKey == null) {
             ic.commitText("[⚠️ Kein Kontakt aktiv - öffne App]", 1)
@@ -457,6 +466,7 @@ class CustomKeyboardService : InputMethodService(), KeyboardView.OnKeyboardActio
         }
     }
 
+    @Deprecated("Using deprecated KeyboardView API")
     override fun onPress(primaryCode: Int) {
         // Haptic Feedback
         if (SettingsManager.isHapticFeedbackEnabled(this)) {
@@ -490,10 +500,12 @@ class CustomKeyboardService : InputMethodService(), KeyboardView.OnKeyboardActio
         }
     }
 
+    @Deprecated("Using deprecated KeyboardView API")
     override fun onRelease(primaryCode: Int) {
         // Optional: Feedback beim Loslassen
     }
 
+    @Deprecated("Using deprecated KeyboardView API")
     override fun onText(text: CharSequence?) {
         val ic = currentInputConnection ?: return
         ic.commitText(text, 1)
@@ -505,7 +517,7 @@ class CustomKeyboardService : InputMethodService(), KeyboardView.OnKeyboardActio
     private fun decryptFromClipboard() {
         val ic = currentInputConnection ?: return
 
-        // Prüfe ob ein Session-Key verfügbar ist
+        // Prüfe, ob ein Session-Key verfügbar ist
         val sessionKey = currentSessionKey
         if (sessionKey == null) {
             ic.commitText("[⚠️ Kein Kontakt aktiv]", 1)
@@ -536,7 +548,7 @@ class CustomKeyboardService : InputMethodService(), KeyboardView.OnKeyboardActio
      */
     private fun handleDelete(ic: android.view.inputmethod.InputConnection) {
         // Versuche, den markierten Text zu löschen
-        // Dies funktioniert bei Android 6.0+ mit der Cursor-Position API
+        // dies funktioniert bei Android 6.0+ mit der Cursor-Position API
         try {
             // Setze eine Löschoperation für den markierten Text
             ic.commitText("", 1)
@@ -549,19 +561,23 @@ class CustomKeyboardService : InputMethodService(), KeyboardView.OnKeyboardActio
         }
     }
 
+    @Deprecated("Using deprecated KeyboardView API")
     override fun swipeLeft() {
         // Optional: Swipe-Gesten
     }
 
+    @Deprecated("Using deprecated KeyboardView API")
     override fun swipeRight() {
         // Optional: Swipe-Gesten
     }
 
+    @Deprecated("Using deprecated KeyboardView API")
     override fun swipeDown() {
         // Tastatur schließen
         requestHideSelf(0)
     }
 
+    @Deprecated("Using deprecated KeyboardView API")
     override fun swipeUp() {
         // Optional: Swipe-Gesten
     }
