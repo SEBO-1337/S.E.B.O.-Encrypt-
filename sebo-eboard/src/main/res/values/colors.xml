@@ -13,14 +13,6 @@
     <color name="key_text">#FFFFFF</color>
     <color name="key_text_secondary">#BBBBBB</color>
 
-    <!-- Light Theme -->
-    <color name="keyboard_background_light">#F5F5F5</color>
-    <color name="key_normal_light">#FFFFFF</color>
-    <color name="key_pressed_light">#E0E0E0</color>
-    <color name="key_border_light">#CCCCCC</color>
-    <color name="key_text_light">#000000</color>
-    <color name="key_text_secondary_light">#666666</color>
-
     <!-- Blue Theme -->
     <color name="keyboard_background_blue">#0D1B2A</color>
     <color name="key_normal_blue">#1B3A4B</color>
@@ -37,6 +29,4 @@
     <color name="key_text_green">#E8F5E9</color>
     <color name="key_text_secondary_green">#A8D5BA</color>
 </resources>
-
-
 

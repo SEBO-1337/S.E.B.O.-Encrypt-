@@ -6,17 +6,40 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.imePadding
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.ui.Alignment
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.LockOpen
 import androidx.compose.material.icons.filled.QrCode
 import androidx.compose.material.icons.filled.Settings
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.PrimaryTabRow
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Tab
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
@@ -25,11 +48,11 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.journeyapps.barcodescanner.ScanContract
 import com.journeyapps.barcodescanner.ScanIntentResult
 import com.journeyapps.barcodescanner.ScanOptions
+import com.sebo.seboencrypt.ui.components.StatusBanner
 import com.sebo.seboencrypt.ui.screens.DecryptTab
 import com.sebo.seboencrypt.ui.screens.EncryptTab
 import com.sebo.seboencrypt.ui.screens.KeyTab
 import com.sebo.seboencrypt.ui.screens.SettingsTab
-import com.sebo.seboencrypt.ui.components.StatusBanner
 import com.sebo.seboencrypt.ui.theme.SEBOEncryptTheme
 import com.sebo.seboencrypt.viewmodel.E2EEViewModel
 
@@ -121,7 +144,7 @@ fun MainScreen(vm: E2EEViewModel, onScanQR: () -> Unit) {
         Triple("Verschlüsseln", Icons.Filled.Lock, 0),
         Triple("Entschlüsseln", Icons.Filled.LockOpen, 1),
         Triple("Schlüssel", Icons.Filled.QrCode, 2),
-        Triple("Einstellungen", Icons.Filled.Settings, 3)
+        Triple("Settings", Icons.Filled.Settings, 3)
     )
     var selectedTab by remember { mutableIntStateOf(0) }
 
