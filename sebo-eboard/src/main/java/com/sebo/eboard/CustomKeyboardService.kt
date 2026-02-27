@@ -40,6 +40,7 @@ class CustomKeyboardService : InputMethodService(), KeyboardView.OnKeyboardActio
     private lateinit var keyboard: Keyboard
     private lateinit var activeContactLabel: TextView
     private lateinit var btnSelectContact: Button
+    private lateinit var btnDecryptClipboard: Button
 
     private var isShifted = false
     private var isCapsLock = false
@@ -64,6 +65,7 @@ class CustomKeyboardService : InputMethodService(), KeyboardView.OnKeyboardActio
         keyboardView = rootView.findViewById(R.id.keyboard)
         activeContactLabel = rootView.findViewById(R.id.active_contact_label)
         btnSelectContact = rootView.findViewById(R.id.btn_select_contact)
+        btnDecryptClipboard = rootView.findViewById(R.id.btn_decrypt_clipboard)
 
         // Initialize all keyboards
         qwertyKeyboard = Keyboard(this, R.xml.qwerty)
@@ -91,6 +93,11 @@ class CustomKeyboardService : InputMethodService(), KeyboardView.OnKeyboardActio
         // Kontakt-Auswahl-Button
         btnSelectContact.setOnClickListener {
             showContactSelectorDialog()
+        }
+
+        // Aus Zwischenablage entschlüsseln-Button
+        btnDecryptClipboard.setOnClickListener {
+            decryptFromClipboard()
         }
 
         return rootView
@@ -490,6 +497,38 @@ class CustomKeyboardService : InputMethodService(), KeyboardView.OnKeyboardActio
     override fun onText(text: CharSequence?) {
         val ic = currentInputConnection ?: return
         ic.commitText(text, 1)
+    }
+
+    /**
+     * Liest verschlüsselten Text aus der Zwischenablage, entschlüsselt ihn und fügt ihn ein
+     */
+    private fun decryptFromClipboard() {
+        val ic = currentInputConnection ?: return
+
+        // Prüfe ob ein Session-Key verfügbar ist
+        val sessionKey = currentSessionKey
+        if (sessionKey == null) {
+            ic.commitText("[⚠️ Kein Kontakt aktiv]", 1)
+            return
+        }
+
+        // Hole Text aus Zwischenablage
+        val clipboard = getSystemService(CLIPBOARD_SERVICE) as android.content.ClipboardManager
+        val clipData = clipboard.primaryClip
+        val clipboardText = clipData?.getItemAt(0)?.text?.toString()
+
+        if (clipboardText.isNullOrBlank()) {
+            ic.commitText("[⚠️ Zwischenablage ist leer]", 1)
+            return
+        }
+
+        try {
+            // Echte AES-GCM Entschlüsselung
+            val decrypted = CryptoEngine.decrypt(clipboardText.trim(), sessionKey)
+            ic.commitText(decrypted, 1)
+        } catch (e: Exception) {
+            ic.commitText("[❌ Entschlüsselung fehlgeschlagen - falscher Kontakt?]", 1)
+        }
     }
 
     override fun swipeLeft() {
