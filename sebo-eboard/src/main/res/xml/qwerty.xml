@@ -39,7 +39,7 @@
 
     <!-- Dritte Reihe: Shift Y X C V B N M ß , . Backspace -->
     <Row>
-        <Key android:codes="-1" android:keyLabel="⇧" android:keyWidth="12%p" android:isModifier="true" android:isSticky="true" android:keyEdgeFlags="left" />
+        <Key android:codes="-1" android:keyLabel="⇧" android:keyWidth="12%p" android:isModifier="true" android:isSticky="false" android:keyEdgeFlags="left" />
         <Key android:codes="121" android:keyLabel="y" android:keyWidth="8%p" />
         <Key android:codes="120" android:keyLabel="x" android:keyWidth="8%p" />
         <Key android:codes="99" android:keyLabel="c" android:keyWidth="8%p" />

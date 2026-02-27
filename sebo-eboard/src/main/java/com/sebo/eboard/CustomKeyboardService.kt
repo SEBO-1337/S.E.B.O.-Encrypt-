@@ -14,6 +14,7 @@ import android.widget.Button
 import android.widget.PopupWindow
 import android.widget.TextView
 import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.core.content.res.ResourcesCompat
 import androidx.recyclerview.widget.RecyclerView
 import com.sebo.eboard.crypto.CryptoEngine
 import com.sebo.eboard.manager.ContactManager
@@ -26,6 +27,10 @@ import com.sebo.eboard.util.ThemeHelper
  *
  * Diese Tastatur ermöglicht systemweites Verschlüsseln und Entschlüsseln von Texten.
  */
+@Suppress(
+    "DEPRECATION",
+    "unused"
+)
 class CustomKeyboardService : InputMethodService(), KeyboardView.OnKeyboardActionListener {
 
     private lateinit var keyboardView: KeyboardView
@@ -60,7 +65,7 @@ class CustomKeyboardService : InputMethodService(), KeyboardView.OnKeyboardActio
         activeContactLabel = rootView.findViewById(R.id.active_contact_label)
         btnSelectContact = rootView.findViewById(R.id.btn_select_contact)
 
-        // Initialize all keyboard layouts
+        // Initialize all keyboards
         qwertyKeyboard = Keyboard(this, R.xml.qwerty)
         numbersKeyboard = Keyboard(this, R.xml.numbers)
         symbolsKeyboard = Keyboard(this, R.xml.symbols)
@@ -109,9 +114,6 @@ class CustomKeyboardService : InputMethodService(), KeyboardView.OnKeyboardActio
     private fun applySettings() {
         // Apply theme colors
         val themeColors = ThemeHelper.getThemeColors(this)
-
-        // Get text size setting
-        val textSize = SettingsManager.getKeyTextSize(this).toFloat()
 
         // Set keyboard view colors and properties
         if (::keyboardView.isInitialized) {
@@ -219,7 +221,7 @@ class CustomKeyboardService : InputMethodService(), KeyboardView.OnKeyboardActio
         )
 
         // Setze Hintergrund für außerhalb-Klick-Erkennung
-        popupWindow.setBackgroundDrawable(resources.getDrawable(android.R.drawable.dialog_holo_light_frame, null))
+        popupWindow.setBackgroundDrawable(ResourcesCompat.getDrawable(resources, android.R.drawable.dialog_holo_light_frame, null))
         popupWindow.isOutsideTouchable = true
         popupWindow.isFocusable = true
         popupWindow.elevation = 10f
@@ -252,15 +254,18 @@ class CustomKeyboardService : InputMethodService(), KeyboardView.OnKeyboardActio
         when (primaryCode) {
             Keyboard.KEYCODE_DELETE -> {
                 ic.deleteSurroundingText(1, 0)
+                resetShiftIfNeeded()
             }
             Keyboard.KEYCODE_SHIFT -> {
                 handleShift()
             }
             Keyboard.KEYCODE_DONE -> {
                 ic.performEditorAction(EditorInfo.IME_ACTION_DONE)
+                resetShiftIfNeeded()
             }
             KEYCODE_SPACE -> {
                 ic.commitText(" ", 1)
+                resetShiftIfNeeded()
             }
             KEYCODE_ENCRYPT -> {
                 encryptText()
@@ -286,29 +291,34 @@ class CustomKeyboardService : InputMethodService(), KeyboardView.OnKeyboardActio
                 }
 
                 ic.commitText(char.toString(), 1)
-
-                // Shift zurücksetzen (außer bei Caps Lock)
-                if (isShifted && !isCapsLock) {
-                    isShifted = false
-                    keyboard.isShifted = false
-                    keyboardView.invalidateAllKeys()
-                }
+                resetShiftIfNeeded()
             }
         }
     }
 
+    private fun resetShiftIfNeeded() {
+        // Shift zurücksetzen (außer bei Caps Lock)
+        if (isShifted && !isCapsLock) {
+            isShifted = false
+            keyboard.isShifted = false
+            keyboardView.invalidateAllKeys()
+        }
+    }
+
     private fun handleShift() {
-        if (isShifted) {
-            // War bereits Shift -> jetzt Caps Lock
-            isCapsLock = true
-            isShifted = true
-        } else {
-            // Aktiviere Shift
-            isShifted = true
+        if (isCapsLock) {
+            // Caps Lock deaktivieren
             isCapsLock = false
+            isShifted = false
+        } else if (isShifted) {
+            // Shift ist aktiv -> aktiviere Caps Lock
+            isCapsLock = true
+        } else {
+            // Shift aktivieren
+            isShifted = true
         }
 
-        keyboard.isShifted = isShifted
+        keyboard.isShifted = (isShifted || isCapsLock)
         keyboardView.invalidateAllKeys()
     }
 
@@ -385,8 +395,8 @@ class CustomKeyboardService : InputMethodService(), KeyboardView.OnKeyboardActio
             // Echte AES-GCM Verschlüsselung
             val encrypted = CryptoEngine.encrypt(textToEncrypt, sessionKey)
             ic.commitText(encrypted, 1)
-        } catch (e: Exception) {
-            ic.commitText("[❌ Verschlüsselung fehlgeschlagen: ${e.message}]", 1)
+        } catch (_: Exception) {
+            ic.commitText("[❌ Verschlüsselung fehlgeschlagen]", 1)
         }
     }
 
