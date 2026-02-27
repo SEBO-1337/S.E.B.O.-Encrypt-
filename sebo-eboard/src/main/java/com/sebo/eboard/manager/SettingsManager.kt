@@ -2,6 +2,7 @@ package com.sebo.eboard.manager
 
 import android.content.Context
 import android.content.SharedPreferences
+import androidx.core.content.edit
 
 /**
  * Verwaltet Einstellungen für die S.E.B.O. E-Board Tastatur
@@ -15,8 +16,6 @@ object SettingsManager {
     private const val KEY_HAPTIC_STRENGTH = "haptic_strength"
     private const val KEY_SOUND_FEEDBACK = "sound_feedback"
     private const val KEY_THEME = "theme"
-    private const val KEY_KEY_HEIGHT = "key_height"
-    private const val KEY_KEY_TEXT_SIZE = "key_text_size"
 
     // Theme values
     const val THEME_DARK = "dark"
@@ -38,7 +37,7 @@ object SettingsManager {
     }
 
     fun setHapticFeedbackEnabled(context: Context, enabled: Boolean) {
-        getPrefs(context).edit().putBoolean(KEY_HAPTIC_FEEDBACK, enabled).apply()
+        getPrefs(context).edit { putBoolean(KEY_HAPTIC_FEEDBACK, enabled) }
     }
 
     fun getHapticStrength(context: Context): Int {
@@ -46,7 +45,7 @@ object SettingsManager {
     }
 
     fun setHapticStrength(context: Context, strength: Int) {
-        getPrefs(context).edit().putInt(KEY_HAPTIC_STRENGTH, strength).apply()
+        getPrefs(context).edit { putInt(KEY_HAPTIC_STRENGTH, strength) }
     }
 
     // Sound Feedback
@@ -55,7 +54,7 @@ object SettingsManager {
     }
 
     fun setSoundFeedbackEnabled(context: Context, enabled: Boolean) {
-        getPrefs(context).edit().putBoolean(KEY_SOUND_FEEDBACK, enabled).apply()
+        getPrefs(context).edit { putBoolean(KEY_SOUND_FEEDBACK, enabled) }
     }
 
     // Theme
@@ -64,24 +63,7 @@ object SettingsManager {
     }
 
     fun setTheme(context: Context, theme: String) {
-        getPrefs(context).edit().putString(KEY_THEME, theme).apply()
-    }
-
-    // Key dimensions
-    fun getKeyHeight(context: Context): Int {
-        return getPrefs(context).getInt(KEY_KEY_HEIGHT, 50)
-    }
-
-    fun setKeyHeight(context: Context, height: Int) {
-        getPrefs(context).edit().putInt(KEY_KEY_HEIGHT, height).apply()
-    }
-
-    fun getKeyTextSize(context: Context): Int {
-        return getPrefs(context).getInt(KEY_KEY_TEXT_SIZE, 20)
-    }
-
-    fun setKeyTextSize(context: Context, size: Int) {
-        getPrefs(context).edit().putInt(KEY_KEY_TEXT_SIZE, size).apply()
+        getPrefs(context).edit { putString(KEY_THEME, theme) }
     }
 }
 

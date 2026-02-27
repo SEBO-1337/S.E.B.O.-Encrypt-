@@ -1,6 +1,7 @@
 package com.sebo.eboard.manager
 
 import android.content.Context
+import androidx.core.content.edit
 import com.sebo.eboard.model.KeyboardContact
 import org.json.JSONArray
 
@@ -40,7 +41,7 @@ object ContactManager {
                     hasSessionKey = hasSessionKey
                 )
             }
-        } catch (e: Exception) {
+        } catch (_: Exception) {
             emptyList()
         }
     }
@@ -58,7 +59,7 @@ object ContactManager {
      */
     fun setActiveContactId(context: Context, contactId: String) {
         val prefs = context.getSharedPreferences(ACTIVE_CONTACT_PREFS, Context.MODE_PRIVATE)
-        prefs.edit().putString(ACTIVE_CONTACT_ID, contactId).apply()
+        prefs.edit { putString(ACTIVE_CONTACT_ID, contactId) }
     }
 
     /**
@@ -70,7 +71,7 @@ object ContactManager {
         val base64 = prefs.getString("key_$contactId", null) ?: return null
         return try {
             android.util.Base64.decode(base64, android.util.Base64.NO_WRAP)
-        } catch (e: Exception) {
+        } catch (_: Exception) {
             null
         }
     }
