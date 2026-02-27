@@ -3,10 +3,18 @@ package com.sebo.eboard
 import android.inputmethodservice.InputMethodService
 import android.inputmethodservice.Keyboard
 import android.inputmethodservice.KeyboardView
+import android.view.Gravity
 import android.view.View
+import android.view.ViewGroup
 import android.view.inputmethod.EditorInfo
+import android.widget.Button
+import android.widget.PopupWindow
+import android.widget.TextView
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import com.sebo.eboard.crypto.CryptoEngine
 import com.sebo.eboard.manager.ContactManager
+import com.sebo.eboard.ui.ContactAdapter
 
 /**
  * S.E.B.O. E-Board - Custom Keyboard Service
@@ -17,22 +25,37 @@ class CustomKeyboardService : InputMethodService(), KeyboardView.OnKeyboardActio
 
     private lateinit var keyboardView: KeyboardView
     private lateinit var keyboard: Keyboard
+    private lateinit var activeContactLabel: TextView
+    private lateinit var btnSelectContact: Button
+
     private var isShifted = false
     private var isCapsLock = false
 
     // Aktueller Session-Key für Ver-/Entschlüsselung
     private var currentSessionKey: ByteArray? = null
+    private var activeContactName: String? = null
 
     override fun onCreateInputView(): View {
-        keyboardView = layoutInflater.inflate(R.layout.keyboard_view, null) as KeyboardView
+        val rootView = layoutInflater.inflate(R.layout.keyboard_view, null)
+
+        keyboardView = rootView.findViewById(R.id.keyboard)
+        activeContactLabel = rootView.findViewById(R.id.active_contact_label)
+        btnSelectContact = rootView.findViewById(R.id.btn_select_contact)
+
         keyboard = Keyboard(this, R.xml.qwerty)
         keyboardView.keyboard = keyboard
         keyboardView.setOnKeyboardActionListener(this)
+        keyboardView.isPreviewEnabled = false
 
         // Lade aktiven Session-Key
         loadActiveSessionKey()
 
-        return keyboardView
+        // Kontakt-Auswahl-Button
+        btnSelectContact.setOnClickListener {
+            showContactSelectorDialog()
+        }
+
+        return rootView
     }
 
     /**
@@ -41,16 +64,99 @@ class CustomKeyboardService : InputMethodService(), KeyboardView.OnKeyboardActio
     private fun loadActiveSessionKey() {
         val activeContactId = ContactManager.getActiveContactId(this)
         currentSessionKey = if (activeContactId != null) {
+            // Lade Kontakt-Namen
+            val contacts = ContactManager.loadContacts(this)
+            val activeContact = contacts.find { it.id == activeContactId }
+            activeContactName = activeContact?.name
+
             ContactManager.getSessionKey(this, activeContactId)
         } else {
             // Fallback: Ersten Kontakt verwenden
             val contacts = ContactManager.loadContacts(this)
             if (contacts.isNotEmpty()) {
-                ContactManager.getSessionKey(this, contacts.first().id)
+                val firstContact = contacts.first()
+                activeContactName = firstContact.name
+                ContactManager.setActiveContactId(this, firstContact.id)
+                ContactManager.getSessionKey(this, firstContact.id)
             } else {
+                activeContactName = null
                 null
             }
         }
+
+        updateContactLabel()
+    }
+
+    /**
+     * Aktualisiert das Label mit dem aktiven Kontakt
+     */
+    private fun updateContactLabel() {
+        if (::activeContactLabel.isInitialized) {
+            activeContactLabel.text = if (activeContactName != null && currentSessionKey != null) {
+                "🔑 $activeContactName"
+            } else if (activeContactName != null) {
+                "⚠️ $activeContactName (kein Key)"
+            } else {
+                "⚠️ Kein Kontakt"
+            }
+        }
+    }
+
+    /**
+     * Zeigt den Kontakt-Auswahl-Dialog als PopupWindow
+     */
+    private fun showContactSelectorDialog() {
+        val contacts = ContactManager.loadContacts(this)
+
+        // Erstelle die Popup-View
+        val popupView = layoutInflater.inflate(R.layout.dialog_contact_selector, null)
+        val recyclerView = popupView.findViewById<RecyclerView>(R.id.contacts_recycler)
+        val noContactsMsg = popupView.findViewById<TextView>(R.id.no_contacts_message)
+
+        if (contacts.isEmpty()) {
+            noContactsMsg.visibility = View.VISIBLE
+            recyclerView.visibility = View.GONE
+        } else {
+            noContactsMsg.visibility = View.GONE
+            recyclerView.visibility = View.VISIBLE
+        }
+
+        val activeContactId = ContactManager.getActiveContactId(this)
+
+        // Erstelle PopupWindow
+        val popupWindow = PopupWindow(
+            popupView,
+            ViewGroup.LayoutParams.MATCH_PARENT,
+            ViewGroup.LayoutParams.WRAP_CONTENT,
+            true
+        )
+
+        // Setze Hintergrund für außerhalb-Klick-Erkennung
+        popupWindow.setBackgroundDrawable(resources.getDrawable(android.R.drawable.dialog_holo_light_frame, null))
+        popupWindow.isOutsideTouchable = true
+        popupWindow.isFocusable = true
+        popupWindow.elevation = 10f
+
+        val adapter = ContactAdapter(contacts, activeContactId) { contact ->
+            // Kontakt wurde ausgewählt
+            ContactManager.setActiveContactId(this, contact.id)
+            activeContactName = contact.name
+            currentSessionKey = ContactManager.getSessionKey(this, contact.id)
+            updateContactLabel()
+            popupWindow.dismiss()
+        }
+
+        recyclerView.layoutManager = LinearLayoutManager(this)
+        recyclerView.adapter = adapter
+
+        // Schließen-Button (optional, falls vorhanden)
+        popupView.findViewById<Button>(R.id.btn_close_dialog)?.setOnClickListener {
+            popupWindow.dismiss()
+        }
+
+        // Zeige Popup oberhalb der Tastatur
+        val rootView = window?.window?.decorView ?: return
+        popupWindow.showAtLocation(rootView, Gravity.CENTER, 0, 0)
     }
 
     override fun onKey(primaryCode: Int, keyCodes: IntArray?) {

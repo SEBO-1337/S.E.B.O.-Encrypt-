@@ -30,13 +30,14 @@ object ContactManager {
                 val name = obj.getString("name")
                 val pubKeyBase64 = obj.getString("publicKeyBase64")
 
-                // SessionKey muss live berechnet werden (ECDH)
-                // Da die Tastatur keinen Zugriff auf den Keystore hat,
-                // müssen wir einen anderen Ansatz wählen
+                // Prüfe ob SessionKey verfügbar ist
+                val hasSessionKey = getSessionKey(context, id) != null
+
                 KeyboardContact(
                     id = id,
                     name = name,
-                    publicKeyBase64 = pubKeyBase64
+                    publicKeyBase64 = pubKeyBase64,
+                    hasSessionKey = hasSessionKey
                 )
             }
         } catch (e: Exception) {

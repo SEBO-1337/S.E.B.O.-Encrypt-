@@ -1,14 +1,57 @@
 <?xml version="1.0" encoding="utf-8"?>
-<android.inputmethodservice.KeyboardView
+<LinearLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
-    android:id="@+id/keyboard"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_alignParentBottom="true"
+    android:orientation="vertical"
     android:background="@color/keyboard_background"
-    android:keyBackground="@drawable/key_background"
-    android:keyTextColor="@color/key_text"
-    android:keyTextSize="20sp"
-    android:shadowColor="#00000000"
-    android:shadowRadius="0" />
+    android:paddingBottom="24dp">
+
+    <!-- Kontakt-Auswahl-Leiste -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:padding="8dp"
+        android:background="@color/keyboard_background"
+        android:elevation="2dp">
+
+        <TextView
+            android:id="@+id/active_contact_label"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Kein Kontakt"
+            android:textColor="@color/key_text"
+            android:textSize="14sp"
+            android:gravity="center_vertical"
+            android:paddingStart="12dp"
+            android:paddingEnd="8dp" />
+
+        <Button
+            android:id="@+id/btn_select_contact"
+            android:layout_width="wrap_content"
+            android:layout_height="40dp"
+            android:text="👤 Kontakt wählen"
+            android:textSize="12sp"
+            android:paddingStart="12dp"
+            android:paddingEnd="12dp" />
+    </LinearLayout>
+
+    <!-- Die Tastatur selbst -->
+    <android.inputmethodservice.KeyboardView
+        android:id="@+id/keyboard"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@color/keyboard_background"
+        android:keyBackground="@drawable/key_background"
+        android:keyTextColor="@color/key_text"
+        android:keyTextSize="20sp"
+        android:keyPreviewLayout="@null"
+        android:keyPreviewHeight="0dp"
+        android:shadowColor="#00000000"
+        android:shadowRadius="0"
+        android:paddingBottom="20dp"
+        android:paddingTop="4dp" />
+</LinearLayout>
 

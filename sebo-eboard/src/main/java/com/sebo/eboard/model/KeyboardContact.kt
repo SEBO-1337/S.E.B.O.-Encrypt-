@@ -6,6 +6,7 @@ package com.sebo.eboard.model
 data class KeyboardContact(
     val id: String,
     val name: String,
-    val publicKeyBase64: String
+    val publicKeyBase64: String,
+    val hasSessionKey: Boolean = false
 )
 
