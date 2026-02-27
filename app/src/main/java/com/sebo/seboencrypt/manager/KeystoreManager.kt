@@ -3,7 +3,10 @@ package com.sebo.seboencrypt.manager
 import android.os.Build
 import android.security.keystore.KeyGenParameterSpec
 import android.security.keystore.KeyProperties
-import java.security.*
+import java.security.KeyPairGenerator
+import java.security.KeyStore
+import java.security.PrivateKey
+import java.security.PublicKey
 import java.security.spec.ECGenParameterSpec
 import javax.crypto.KeyAgreement
 

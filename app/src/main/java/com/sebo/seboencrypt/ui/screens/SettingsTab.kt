@@ -8,20 +8,16 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Palette
 import androidx.compose.material.icons.filled.PhoneAndroid
-import androidx.compose.material.icons.filled.TextFields
 import androidx.compose.material.icons.filled.VolumeUp
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.Divider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.RadioButton
-import androidx.compose.material3.Slider
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -50,12 +46,6 @@ fun SettingsTab() {
     }
     var selectedTheme by remember {
         mutableStateOf(SettingsManager.getTheme(context))
-    }
-    var keyHeight by remember {
-        mutableStateOf(SettingsManager.getKeyHeight(context).toFloat())
-    }
-    var keyTextSize by remember {
-        mutableStateOf(SettingsManager.getKeyTextSize(context).toFloat())
     }
 
     Column(
@@ -122,54 +112,6 @@ fun SettingsTab() {
                         Text(text = themeName)
                     }
                 }
-
-                Divider(modifier = Modifier.padding(vertical = 16.dp))
-
-                // Key Height
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.padding(bottom = 8.dp)
-                ) {
-                    Icon(
-                        Icons.Filled.TextFields,
-                        contentDescription = null,
-                        modifier = Modifier.size(20.dp)
-                    )
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text(
-                        text = "Tastenhöhe: ${keyHeight.toInt()}dp",
-                        style = MaterialTheme.typography.titleMedium
-                    )
-                }
-
-                Slider(
-                    value = keyHeight,
-                    onValueChange = { keyHeight = it },
-                    onValueChangeFinished = {
-                        SettingsManager.setKeyHeight(context, keyHeight.toInt())
-                    },
-                    valueRange = 40f..70f,
-                    steps = 5
-                )
-
-                Spacer(modifier = Modifier.height(16.dp))
-
-                // Key Text Size
-                Text(
-                    text = "Textgröße: ${keyTextSize.toInt()}sp",
-                    style = MaterialTheme.typography.titleMedium,
-                    modifier = Modifier.padding(bottom = 8.dp)
-                )
-
-                Slider(
-                    value = keyTextSize,
-                    onValueChange = { keyTextSize = it },
-                    onValueChangeFinished = {
-                        SettingsManager.setKeyTextSize(context, keyTextSize.toInt())
-                    },
-                    valueRange = 14f..28f,
-                    steps = 6
-                )
             }
         }
 

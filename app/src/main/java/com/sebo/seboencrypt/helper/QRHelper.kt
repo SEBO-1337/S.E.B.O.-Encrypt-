@@ -1,6 +1,7 @@
 package com.sebo.seboencrypt.helper
 
 import android.graphics.Bitmap
+import android.util.Base64
 import androidx.core.graphics.createBitmap
 import androidx.core.graphics.set
 import com.google.zxing.BarcodeFormat
@@ -8,7 +9,6 @@ import com.google.zxing.qrcode.QRCodeWriter
 import java.security.KeyFactory
 import java.security.PublicKey
 import java.security.spec.X509EncodedKeySpec
-import android.util.Base64
 
 object QRHelper {
 

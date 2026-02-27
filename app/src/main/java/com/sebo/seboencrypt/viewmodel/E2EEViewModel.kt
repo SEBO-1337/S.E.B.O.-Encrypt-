@@ -4,12 +4,12 @@ import android.app.Application
 import android.content.Context
 import android.graphics.Bitmap
 import androidx.lifecycle.AndroidViewModel
+import com.sebo.seboencrypt.engine.CryptoEngine
 import com.sebo.seboencrypt.helper.ClipboardHelper
 import com.sebo.seboencrypt.helper.KeyDerivation
 import com.sebo.seboencrypt.helper.KeyboardSyncHelper
 import com.sebo.seboencrypt.helper.QRHelper
 import com.sebo.seboencrypt.helper.ShareHelper
-import com.sebo.seboencrypt.engine.CryptoEngine
 import com.sebo.seboencrypt.manager.KeystoreManager
 import com.sebo.seboencrypt.model.Contact
 import com.sebo.seboencrypt.repository.ContactRepository
