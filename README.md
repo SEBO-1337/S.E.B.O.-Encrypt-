@@ -40,7 +40,7 @@ Die App nutzt ein **ECDH-Schlüsselaustausch-Protokoll**:
 | 🔒 Verschlüsseln | Tippen Sie Text in **jeder App** und verschlüsseln Sie ihn direkt mit der 🔒-Taste |
 | 🔓 Entschlüsseln | Empfangene verschlüsselte Nachrichten direkt in der App entschlüsseln mit der 🔓-Taste |
 | 📋 Aus Zwischenablage entschlüsseln | Schnelle Entschlüsselung von kopiertem Text – perfekt für WhatsApp-Nachrichten |
-| QWERTY-Layout | Deutsches Tastaturlayout mit Shift/Caps Lock |
+| QWERTZ-Layout | Deutsches Tastaturlayout mit Shift/Caps Lock |
 | Text-Auswahl | Markieren Sie Text und die Löschen-Taste entfernt den markierten Text |
 | Systemweit | Funktioniert in WhatsApp, Telegram, Signal, SMS, E-Mail, Notizen – überall! |
 | Auto-Sync | SessionKeys werden automatisch zwischen App und Tastatur synchronisiert |
