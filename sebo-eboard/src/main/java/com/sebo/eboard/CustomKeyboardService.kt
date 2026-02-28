@@ -6,6 +6,8 @@ import android.inputmethodservice.InputMethodService
 import android.inputmethodservice.Keyboard
 import android.inputmethodservice.KeyboardView
 import android.media.AudioManager
+import android.os.Handler
+import android.os.Looper
 import android.os.VibrationEffect
 import android.os.Vibrator
 import android.view.Gravity
@@ -13,6 +15,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.view.inputmethod.EditorInfo
 import android.widget.Button
+import android.widget.LinearLayout
 import android.widget.PopupWindow
 import android.widget.TextView
 import androidx.core.content.res.ResourcesCompat
@@ -59,11 +62,45 @@ class CustomKeyboardService : InputMethodService(), KeyboardView.OnKeyboardActio
     private var vibrator: Vibrator? = null
     private var audioManager: AudioManager? = null
 
+    // Longpress-Handling
+    private val longPressHandler = Handler(Looper.getMainLooper())
+    private var currentPressedCode: Int = -1
+    private var popupWindow: PopupWindow? = null
+    private val longPressTimeout = 500L
+    private var isLongPressPopupActive = false
+
+    private lateinit var longPressRunnable: Runnable
+
+    companion object {
+        // Mapping von Codes zu Umlaut-Alternativen
+        private val UMLAUT_MAP = mapOf(
+            117 to 'ü',  // u -> ü
+            111 to 'ö',  // o -> ö
+            97 to 'ä',   // a -> ä
+            115 to 'ß'   // s -> ß
+        )
+
+        private const val KEYCODE_SPACE = 32
+        private const val KEYCODE_ENCRYPT = -100
+        private const val KEYCODE_DECRYPT = -101
+        private const val KEYCODE_MODE_SYMBOLS = -102      // =\# Taste
+        private const val KEYCODE_MODE_ABC = -103          // ABC Taste
+        private const val KEYCODE_MODE_NUMBERS = -104      // 123 Taste
+        private const val KEYCODE_SHOW_CONTACTS = -105     // Kontakt-Auswahl Taste
+    }
+
     @Suppress("InflateParams")
     override fun onCreateInputView(): View {
         val rootView = layoutInflater.inflate(R.layout.keyboard_view, null, false)
 
         keyboardView = rootView.findViewById(R.id.keyboard)
+
+        // Initialize longPressRunnable
+        longPressRunnable = Runnable {
+            if (UMLAUT_MAP.containsKey(currentPressedCode)) {
+                showUmlautPopup(currentPressedCode)
+            }
+        }
 
         // Initialize all keyboards
         qwertyKeyboard = Keyboard(this, R.xml.qwertz)
@@ -246,6 +283,11 @@ class CustomKeyboardService : InputMethodService(), KeyboardView.OnKeyboardActio
 
     @Deprecated("Using deprecated KeyboardView API")
     override fun onKey(primaryCode: Int, keyCodes: IntArray?) {
+        // Ignoriere onKey wenn ein Longpress-Popup aktiv ist
+        if (isLongPressPopupActive) {
+            return
+        }
+
         val ic = currentInputConnection ?: return
 
         when (primaryCode) {
@@ -441,6 +483,14 @@ class CustomKeyboardService : InputMethodService(), KeyboardView.OnKeyboardActio
 
     @Deprecated("Using deprecated KeyboardView API")
     override fun onPress(primaryCode: Int) {
+        // Speichere den Code und starte Longpress-Timer
+        currentPressedCode = primaryCode
+
+        // Nur für Umlaut-Tasten Longpress-Timer starten
+        if (UMLAUT_MAP.containsKey(primaryCode)) {
+            longPressHandler.postDelayed(longPressRunnable, longPressTimeout)
+        }
+
         // Haptic Feedback
         if (SettingsManager.isHapticFeedbackEnabled(this)) {
             vibrator?.let { vib ->
@@ -475,7 +525,10 @@ class CustomKeyboardService : InputMethodService(), KeyboardView.OnKeyboardActio
 
     @Deprecated("Using deprecated KeyboardView API")
     override fun onRelease(primaryCode: Int) {
-        // Optional: Feedback beim Loslassen
+        // Longpress-Timer stoppen
+        longPressHandler.removeCallbacks(longPressRunnable)
+        // Popup wird nur geschlossen, wenn es der Button-Klick macht
+        currentPressedCode = -1
     }
 
     @Deprecated("Using deprecated KeyboardView API")
@@ -555,14 +608,70 @@ class CustomKeyboardService : InputMethodService(), KeyboardView.OnKeyboardActio
         // Optional: Swipe-Gesten
     }
 
-    companion object {
-        private const val KEYCODE_SPACE = 32
-        private const val KEYCODE_ENCRYPT = -100
-        private const val KEYCODE_DECRYPT = -101
-        private const val KEYCODE_MODE_SYMBOLS = -102      // =\# Taste
-        private const val KEYCODE_MODE_ABC = -103          // ABC Taste
-        private const val KEYCODE_MODE_NUMBERS = -104      // 123 Taste
-        private const val KEYCODE_SHOW_CONTACTS = -105     // Kontakt-Auswahl Taste
+    /**
+     * Zeigt ein Popup mit Umlaut-Alternativen
+     */
+    private fun showUmlautPopup(primaryCode: Int) {
+        val umlaut = UMLAUT_MAP[primaryCode] ?: return
+
+        dismissUmlautPopup()
+
+        // Markiere dass das Longpress-Popup aktiv ist
+        isLongPressPopupActive = true
+
+        // Erstelle Popup mit beiden Optionen
+        val popupView = LinearLayout(this)
+        popupView.orientation = LinearLayout.HORIZONTAL
+        popupView.setBackgroundColor(0xFF333333.toInt())
+
+        // Original-Buchstabe Button
+        val originalButton = createUmlautButton(primaryCode.toChar().toString(), primaryCode)
+        popupView.addView(originalButton)
+
+        // Umlaut Button
+        val umlautButton = createUmlautButton(umlaut.toString(), umlaut.code)
+        popupView.addView(umlautButton)
+
+        popupWindow = PopupWindow(popupView, 180, 80, false)
+        popupWindow?.elevation = 10f
+        popupWindow?.isOutsideTouchable = false
+        // WICHTIG: Verhindert, dass die Tastatur versteckt wird
+        popupWindow?.inputMethodMode = PopupWindow.INPUT_METHOD_NOT_NEEDED
+
+        // Zeige Popup über der Tastatur
+        val rootView = window?.window?.decorView ?: return
+        popupWindow?.showAtLocation(rootView, Gravity.CENTER, 0, -300)
+    }
+
+    /**
+     * Erstellt einen Button für Umlaut-Auswahl
+     */
+    private fun createUmlautButton(text: String, code: Int): TextView {
+        val button = TextView(this)
+        button.text = text
+        button.textSize = 24f
+        button.gravity = Gravity.CENTER
+        button.layoutParams = LinearLayout.LayoutParams(90, 80)
+        button.setTextColor(0xFFFFFFFF.toInt())
+        button.setBackgroundColor(0xFF666666.toInt())
+
+        button.setOnClickListener {
+            // Sende den gewählten Character
+            val ic = currentInputConnection ?: return@setOnClickListener
+            ic.commitText(text, 1)
+            dismissUmlautPopup()
+        }
+
+        return button
+    }
+
+    /**
+     * Schließt das Umlaut-Popup
+     */
+    private fun dismissUmlautPopup() {
+        popupWindow?.dismiss()
+        popupWindow = null
+        isLongPressPopupActive = false
     }
 }
 
