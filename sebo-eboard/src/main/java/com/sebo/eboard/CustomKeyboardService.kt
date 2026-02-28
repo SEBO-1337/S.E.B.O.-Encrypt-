@@ -41,9 +41,6 @@ class CustomKeyboardService : InputMethodService(), KeyboardView.OnKeyboardActio
     private lateinit var numbersKeyboard: Keyboard
     private lateinit var symbolsKeyboard: Keyboard
     private lateinit var keyboard: Keyboard
-    private lateinit var activeContactLabel: TextView
-    private lateinit var btnSelectContact: Button
-    private lateinit var btnDecryptClipboard: Button
 
     private var isShifted = false
     private var isCapsLock = false
@@ -67,9 +64,6 @@ class CustomKeyboardService : InputMethodService(), KeyboardView.OnKeyboardActio
         val rootView = layoutInflater.inflate(R.layout.keyboard_view, null, false)
 
         keyboardView = rootView.findViewById(R.id.keyboard)
-        activeContactLabel = rootView.findViewById(R.id.active_contact_label)
-        btnSelectContact = rootView.findViewById(R.id.btn_select_contact)
-        btnDecryptClipboard = rootView.findViewById(R.id.btn_decrypt_clipboard)
 
         // Initialize all keyboards
         qwertyKeyboard = Keyboard(this, R.xml.qwertz)
@@ -94,15 +88,6 @@ class CustomKeyboardService : InputMethodService(), KeyboardView.OnKeyboardActio
         // Lade aktiven Session-Key
         loadActiveSessionKey()
 
-        // Kontakt-Auswahl-Button
-        btnSelectContact.setOnClickListener {
-            showContactSelectorDialog()
-        }
-
-        // Aus Zwischenablage entschlüsseln-Button
-        btnDecryptClipboard.setOnClickListener {
-            decryptFromClipboard()
-        }
 
         return rootView
     }
@@ -156,14 +141,7 @@ class CustomKeyboardService : InputMethodService(), KeyboardView.OnKeyboardActio
             }
 
             // Update button and label colors
-            if (::btnSelectContact.isInitialized) {
-                btnSelectContact.setBackgroundColor(themeColors.keyNormal)
-                btnSelectContact.setTextColor(themeColors.keyText)
-            }
-
-            if (::activeContactLabel.isInitialized) {
-                activeContactLabel.setTextColor(themeColors.keyText)
-            }
+            // (buttons removed from keyboard view)
 
             // Force keyboard view to redraw
             keyboardView.invalidateAllKeys()
@@ -197,46 +175,33 @@ class CustomKeyboardService : InputMethodService(), KeyboardView.OnKeyboardActio
                 null
             }
         }
-
-        updateContactLabel()
     }
 
-    /**
-     * Aktualisiert das Label mit dem aktiven Kontakt
-     */
-    private fun updateContactLabel() {
-        if (::activeContactLabel.isInitialized) {
-            activeContactLabel.text = if (activeContactName != null && currentSessionKey != null) {
-                "🔑 $activeContactName"
-            } else if (activeContactName != null) {
-                "⚠️ $activeContactName (kein Key)"
-            } else {
-                "⚠️ Kein Kontakt"
-            }
-        }
-    }
+    // Label entfernt - wird jetzt im Dropdown-Menü angezeigt
 
     /**
-     * Zeigt den Kontakt-Auswahl-Dialog als PopupWindow
+     * Zeigt ein Dropdown-Menü mit Kontakt-Auswahl und schnellen Aktionen
      */
-    @Suppress("InflateParams")
     private fun showContactSelectorDialog() {
+        // Erstelle ein einfaches PopupMenu-ähnliches Dropdown
         val contacts = ContactManager.loadContacts(this)
+        val activeContactId = ContactManager.getActiveContactId(this)
 
-        // Erstelle die Popup-View
+        if (contacts.isEmpty()) {
+            // Keine Kontakte vorhanden - zeige Popup
+            val ic = currentInputConnection ?: return
+            ic.commitText("[⚠️ Keine Kontakte definiert]", 1)
+            return
+        }
+
+        // Erstelle die Popup-View mit RecyclerView
+        @Suppress("InflateParams")
         val popupView = layoutInflater.inflate(R.layout.dialog_contact_selector, null, false)
         val recyclerView = popupView.findViewById<RecyclerView>(R.id.contacts_recycler)
         val noContactsMsg = popupView.findViewById<TextView>(R.id.no_contacts_message)
 
-        if (contacts.isEmpty()) {
-            noContactsMsg.visibility = View.VISIBLE
-            recyclerView.visibility = View.GONE
-        } else {
-            noContactsMsg.visibility = View.GONE
-            recyclerView.visibility = View.VISIBLE
-        }
-
-        val activeContactId = ContactManager.getActiveContactId(this)
+        noContactsMsg.visibility = View.GONE
+        recyclerView.visibility = View.VISIBLE
 
         // Erstelle PopupWindow
         val popupWindow = PopupWindow(
@@ -257,12 +222,17 @@ class CustomKeyboardService : InputMethodService(), KeyboardView.OnKeyboardActio
             ContactManager.setActiveContactId(this, contact.id)
             activeContactName = contact.name
             currentSessionKey = ContactManager.getSessionKey(this, contact.id)
-            updateContactLabel()
             popupWindow.dismiss()
         }
 
         recyclerView.layoutManager = LinearLayoutManager(this)
         recyclerView.adapter = adapter
+
+        // Clipboard-Entschlüsselung Button
+        popupView.findViewById<Button>(R.id.btn_decrypt_clipboard)?.setOnClickListener {
+            decryptFromClipboard()
+            popupWindow.dismiss()
+        }
 
         // Schließen-Button (optional, falls vorhanden)
         popupView.findViewById<Button>(R.id.btn_close_dialog)?.setOnClickListener {
@@ -299,6 +269,9 @@ class CustomKeyboardService : InputMethodService(), KeyboardView.OnKeyboardActio
             }
             KEYCODE_DECRYPT -> {
                 decryptText()
+            }
+            KEYCODE_SHOW_CONTACTS -> {
+                showContactSelectorDialog()
             }
             KEYCODE_MODE_NUMBERS -> {
                 switchToNumbers()
@@ -589,6 +562,7 @@ class CustomKeyboardService : InputMethodService(), KeyboardView.OnKeyboardActio
         private const val KEYCODE_MODE_SYMBOLS = -102      // =\# Taste
         private const val KEYCODE_MODE_ABC = -103          // ABC Taste
         private const val KEYCODE_MODE_NUMBERS = -104      // 123 Taste
+        private const val KEYCODE_SHOW_CONTACTS = -105     // Kontakt-Auswahl Taste
     }
 }
 

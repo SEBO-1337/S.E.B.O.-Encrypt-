@@ -13,5 +13,6 @@
     <string name="keyboard_view_no_contact">Kein Kontakt</string>
     <string name="keyboard_view_decrypt">📋 Entschlüsseln</string>
     <string name="keyboard_view_btn_select_contact">👤 Kontakt</string>
+    <string name="dialog_contact_decrypt_from_clipboard">Aus Zwischenablage entschlüsseln</string>
 </resources>
 
